@@ -1,0 +1,166 @@
+<ion-content class="history-page">
+
+  <!-- Top Toggle -->
+  <div class="history-toggle">
+
+    <button
+      class="toggle-btn"
+      [class.active]="selectedTab === 'received'"
+      (click)="showReceived()">
+
+      <ion-icon name="arrow-down-outline"></ion-icon>
+      <span>Received</span>
+
+    </button>
+
+    <button
+      class="toggle-btn"
+      [class.active]="selectedTab === 'sent'"
+      (click)="showSent()">
+
+      <ion-icon name="arrow-up-outline"></ion-icon>
+      <span>Sent</span>
+
+    </button>
+
+  </div>
+
+  <!-- ========================= -->
+  <!-- RECEIVED HISTORY -->
+  <!-- ========================= -->
+
+  @if (selectedTab === 'received') {
+
+    <div class="history-list">
+
+      <div class="history-card">
+
+        <div class="icon received">
+          <ion-icon name="image-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Vacation.jpg</h3>
+          <p>Received • 4.5 MB</p>
+          <small>Today, 10:45 AM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-down-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="history-card">
+
+        <div class="icon received">
+          <ion-icon name="document-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Notes.pdf</h3>
+          <p>Received • 2.1 MB</p>
+          <small>Yesterday, 6:20 PM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-down-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="history-card">
+
+        <div class="icon received">
+          <ion-icon name="image-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Family.png</h3>
+          <p>Received • 7.8 MB</p>
+          <small>25 Jul, 4:15 PM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-down-outline">
+        </ion-icon>
+
+      </div>
+
+    </div>
+
+  }
+
+  <!-- ========================= -->
+  <!-- SENT HISTORY -->
+  <!-- ========================= -->
+
+  @if (selectedTab === 'sent') {
+
+    <div class="history-list">
+
+      <div class="history-card">
+
+        <div class="icon sent">
+          <ion-icon name="document-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Resume.pdf</h3>
+          <p>Sent • 1.8 MB</p>
+          <small>Today, 8:30 AM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-up-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="history-card">
+
+        <div class="icon sent">
+          <ion-icon name="image-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Profile.jpg</h3>
+          <p>Sent • 3.4 MB</p>
+          <small>Yesterday, 2:10 PM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-up-outline">
+        </ion-icon>
+
+      </div>
+
+      <div class="history-card">
+
+        <div class="icon sent">
+          <ion-icon name="document-outline"></ion-icon>
+        </div>
+
+        <div class="details">
+          <h3>Invoice.pdf</h3>
+          <p>Sent • 850 KB</p>
+          <small>24 Jul, 9:15 AM</small>
+        </div>
+
+        <ion-icon
+          class="status"
+          name="arrow-up-outline">
+        </ion-icon>
+
+      </div>
+
+    </div>
+
+  }
+
+</ion-content>

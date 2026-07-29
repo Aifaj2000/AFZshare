@@ -1,0 +1,71 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/share"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title *ngIf="!isSearching">Select items</ion-title>
+    <ion-searchbar *ngIf="isSearching"
+      [value]="searchTerm"
+      (ionInput)="onSearchInput($event)"
+      placeholder="Search"
+      showCancelButton="always"
+      (ionCancel)="toggleSearch()">
+    </ion-searchbar>
+
+    <ion-buttons slot="end" *ngIf="!isSearching">
+      <ion-button (click)="toggleSearch()">
+        <ion-icon name="search-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="dark">
+
+  <div class="category-bar">
+    <div class="category"
+      *ngFor="let cat of categories"
+      [class.active]="selectedCategory === cat.id"
+      (click)="selectCategory(cat.id)">
+      <ion-icon [name]="cat.icon"></ion-icon>
+      <span>{{ cat.label }}</span>
+    </div>
+  </div>
+
+  <ion-segment [value]="segment" (ionChange)="onSegmentChange($event)" *ngIf="selectedCategory === 'apps'">
+    <ion-segment-button value="installed">
+      <ion-label>Installed</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="packages">
+      <ion-label>Packages</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <div class="ion-text-center ion-padding" *ngIf="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <div class="ion-text-center ion-padding" *ngIf="!loading && filteredItems.length === 0">
+    <p>No items found</p>
+  </div>
+
+  <div class="app-grid" *ngIf="!loading">
+    @for (item of filteredItems; track item.id) {
+      <div class="app-card" (click)="toggleApp(item)">
+        <div class="check" *ngIf="item.selected">✓</div>
+        <img [src]="item.icon">
+        <h4>{{ item.name }}</h4>
+        <p>{{ item.size }}</p>
+      </div>
+    }
+  </div>
+
+</ion-content>
+
+<div class="bottom-bar" *ngIf="selectedCount > 0">
+  <div class="count">{{ selectedCount }} · {{ selectedSizeLabel }}</div>
+  <ion-button expand="block" (click)="sendFile()">
+    SEND
+  </ion-button>
+</div>

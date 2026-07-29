@@ -1,0 +1,146 @@
+.history-page {
+  --background: linear-gradient(180deg, #e5e6e8 0%, #001e8d 100%);
+}
+
+/* ==========================
+   Toggle
+========================== */
+
+.history-toggle {
+  display: flex;
+  background: #ffffff;
+  margin: 18px;
+  padding: 6px;
+  border-radius: 35px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+}
+
+.toggle-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  border-radius: 30px;
+  height: 50px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 17px;
+  font-weight: 600;
+  color: #5b6577;
+
+  transition: .25s;
+}
+
+.toggle-btn ion-icon {
+  font-size: 22px;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(90deg, #36c3ff, #2d8cff);
+  color: white;
+  box-shadow: 0 4px 15px rgba(45, 140, 255, .35);
+}
+
+/* ==========================
+   History List
+========================== */
+
+.history-list {
+  padding: 0 18px 25px;
+}
+
+/* ==========================
+   Card
+========================== */
+
+.history-card {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 18px;
+  padding: 15px;
+  margin-bottom: 15px;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,.06);
+}
+
+/* ==========================
+   File Icon
+========================== */
+
+.icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  margin-right: 14px;
+}
+
+.icon.received {
+  background: rgba(56,189,248,.15);
+}
+
+.icon.sent {
+  background: rgba(99,102,241,.15);
+}
+
+.icon ion-icon {
+  font-size: 28px;
+}
+
+.received ion-icon {
+  color: #38bdf8;
+}
+
+.sent ion-icon {
+  color: #6366f1;
+}
+
+/* ==========================
+   Details
+========================== */
+
+.details {
+  flex: 1;
+}
+
+.details h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.details p {
+  margin: 5px 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.details small {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* ==========================
+   Status Icon
+========================== */
+
+.status {
+  font-size: 24px;
+}
+
+.history-card .status[name="arrow-down-outline"] {
+  color: #22c55e;
+}
+
+.history-card .status[name="arrow-up-outline"] {
+  color: #3b82f6;
+}

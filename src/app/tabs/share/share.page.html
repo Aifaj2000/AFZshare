@@ -1,0 +1,61 @@
+<ion-content [fullscreen]="true" class="share-page">
+
+  <!-- Top Section -->
+  <div class="top-section">
+
+    <div class="title">
+      <h2>Offline File Sharing</h2>
+    </div>
+
+    <!-- Help -->
+    <div class="help-section">
+      <div class="help-btn" (click)="showHelp()">
+        <ion-icon name="help-outline"></ion-icon>
+      </div>
+
+      <p>How it works</p>
+    </div>
+
+    <!-- Send -->
+    <div class="send-wrapper" (click)="sendFile()">
+
+      <div class="send-glow"></div>
+
+      <div class="send-btn">
+        <ion-icon name="arrow-up-outline"></ion-icon>
+      </div>
+
+      <span>Send</span>
+
+    </div>
+
+  </div>
+
+  <!-- Bottom Section -->
+  <div class="bottom-section">
+
+    <!-- Receive -->
+    <div class="receive-wrapper" (click)="receiveFile()">
+
+      <span>Receive</span>
+
+      <div class="receive-glow"></div>
+
+      <div class="receive-btn">
+        <ion-icon name="arrow-down-outline"></ion-icon>
+      </div>
+
+    </div>
+
+    <div class="history-container">
+      <ion-button
+        shape="round"
+        class="invite-btn"
+        (click)="inviteFriends()">
+        Invite
+      </ion-button>
+    </div>
+
+  </div>
+
+</ion-content>

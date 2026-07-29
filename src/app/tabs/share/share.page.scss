@@ -1,0 +1,257 @@
+:host {
+  height: 100%;
+}
+
+ion-content {
+  --padding-top: 0;
+  --padding-bottom: 0;
+  --padding-start: 0;
+  --padding-end: 0;
+  --background: #7fdcff;
+}
+
+.share-page {
+  height: 100vh;
+}
+
+/*==========================
+  TOP SECTION
+==========================*/
+
+.top-section {
+  position: relative;
+  height: 58vh;
+  background: linear-gradient(180deg, #001e8d 0%, #ffffff 100%);
+  overflow: hidden;
+}
+
+/* Curved Bottom */
+.top-section::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  bottom: -130px;
+  width: 120%;
+  height: 260px;
+  background: linear-gradient(180deg, #001e8d 0%, #e5e5e5 50%);
+  border-radius: 50%;
+}
+
+/*==========================
+TITLE
+==========================*/
+
+.title {
+  padding-top: 40px;
+  text-align: center;
+}
+
+.title h2 {
+  color: white;
+  font-size: 28px;
+  font-weight: 400;
+}
+
+/*==========================
+HELP
+==========================*/
+
+.help-section {
+  margin-top: 25px;
+  text-align: center;
+  color: white;
+}
+
+.help-btn {
+  width: 45px;
+  height: 45px;
+  margin: auto;
+  border-radius: 50%;
+  background: #f7a900;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow:
+    0 0 10px rgba(255,170,0,.7),
+    0 0 25px rgba(255,170,0,.4);
+}
+
+.help-btn ion-icon {
+  font-size: 34px;
+  color: white;
+}
+
+.help-section p {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+/*==========================
+SEND
+==========================*/
+
+.send-wrapper {
+  position: absolute;
+  left: 40px;
+  bottom: 70px;
+
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 5;
+}
+
+.send-glow {
+  position: absolute;
+  left: -10px;
+
+  width: 120px;
+  height: 120px;
+
+  border-radius: 50%;
+  background: rgba(53,154,255,.22);
+
+  filter: blur(12px);
+}
+
+.send-btn {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+
+  background: #3ea8ff;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow:
+    0 0 20px rgba(0,153,255,.6),
+    0 0 45px rgba(0,153,255,.35);
+
+  z-index: 2;
+}
+
+.send-btn ion-icon {
+  font-size: 42px;
+  color: #ffffff;
+}
+
+.send-wrapper span {
+  color: white;
+  font-size: 30px;
+  font-weight: 300;
+}
+
+/*==========================
+BOTTOM
+==========================*/
+
+.bottom-section {
+  position: relative;
+  height: 42vh;
+  background: linear-gradient(180deg, #e5e6e8 0%, #001e8d 72%);
+}
+
+/*==========================
+RECEIVE
+==========================*/
+
+.receive-wrapper {
+  position: absolute;
+  right: 35px;
+  top: 40px;
+
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.receive-wrapper span {
+  color: white;
+  font-size: 30px;
+  font-weight: 300;
+}
+
+.receive-glow {
+  position: absolute;
+  right: -12px;
+
+  width: 120px;
+  height: 120px;
+
+  border-radius: 50%;
+  background: rgba(24,46,145,.25);
+
+  filter: blur(12px);
+}
+
+.receive-btn {
+  width: 80px;
+  height: 80px;
+
+  border-radius: 50%;
+   background: #3ea8ff;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  box-shadow:
+    0 0 20px rgba(0,153,255,.6),
+    0 0 45px rgba(0,153,255,.35);
+
+  z-index: 2;
+}
+
+.receive-btn ion-icon {
+  font-size: 42px;
+  color: white;
+}
+
+/*==========================
+HISTORY
+==========================*/
+
+.history-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 60px;
+  display: flex;
+  justify-content: center;
+}
+
+.invite-btn {
+  --background: #f4b524;
+  --color: #fff;
+  --border-radius: 25px;
+  --box-shadow: 0 8px 20px rgba(244, 181, 36, 0.4);
+
+  width: 140px;
+  height: 42px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  text-transform: none;
+}
+
+/*==========================
+ANIMATION
+==========================*/
+
+.send-btn,
+.receive-btn,
+.help-btn {
+  transition: .25s;
+}
+
+.send-btn:active,
+.receive-btn:active,
+.help-btn:active {
+  transform: scale(.92);
+}
+
