@@ -11,7 +11,9 @@ ion-content {
 }
 
 .share-page {
-  height: 100vh;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 /*==========================
@@ -20,7 +22,7 @@ ion-content {
 
 .top-section {
   position: relative;
-  height: 58vh;
+  height: 50vh;
   background: linear-gradient(180deg, #001e8d 0%, #ffffff 100%);
   overflow: hidden;
 }

@@ -6,6 +6,9 @@ export interface ShareItem {
   icon: string;
   selected: boolean;
   type: 'app' | 'file' | 'photo' | 'video' | 'music';
-  path?: string;
   packageName?: string;
+  category?: string;
+  path?: string;
+  isSystemApp?: boolean;
+  hasLauncherIcon?: boolean;
 }
