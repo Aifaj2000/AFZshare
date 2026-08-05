@@ -1,0 +1,13 @@
+diff --git a/node_modules/@squareetlabs/capacitor-nearby-multipeer/android/build.gradle b/node_modules/@squareetlabs/capacitor-nearby-multipeer/android/build.gradle
+index bf6f460..cfdbf4e 100644
+--- a/node_modules/@squareetlabs/capacitor-nearby-multipeer/android/build.gradle
++++ b/node_modules/@squareetlabs/capacitor-nearby-multipeer/android/build.gradle
+@@ -19,7 +19,7 @@ apply plugin: 'com.android.library'
+ 
+ android {
+     namespace "com.squareetlabs.capacitor.nearbymultipeer"
+-    compileSdk 34
++    compileSdk 36
+     defaultConfig {
+         minSdkVersion project.hasProperty('minSdkVersion') ? rootProject.ext.minSdkVersion : 23
+         targetSdkVersion project.hasProperty('targetSdkVersion') ? rootProject.ext.targetSdkVersion : 34

@@ -33,6 +33,20 @@
     </div>
   </div>
 
+  <div class="footer" *ngIf="selectedCount > 0">
+  <div class="bottom-bar">
+    <div class="count">{{ selectedCount }} · {{ selectedSizeLabel }}</div>
+
+    <button class="add-more-btn" (click)="addMore()" *ngIf="selectedCategory !== 'apps'">
+      + More
+    </button>
+
+    <ion-button expand="block" (click)="sendFile()">
+      SEND
+    </ion-button>
+  </div>
+</div>
+
   <ion-segment  [value]="segment" (ionChange)="onSegmentChange($event)" *ngIf="selectedCategory === 'apps'">
     <ion-segment-button value="installed">
       <ion-label>Installed</ion-label>
@@ -41,6 +55,8 @@
       <ion-label>Packages</ion-label>
     </ion-segment-button>
   </ion-segment>
+
+  
 
   <div class="loading-overlay" *ngIf="loading">
   <ion-spinner name="crescent" color="light"></ion-spinner>
@@ -79,18 +95,6 @@
   }
 </div>
 
-<div class="footer" *ngIf="selectedCount > 0">
-  <div class="bottom-bar">
-    <div class="count">{{ selectedCount }} · {{ selectedSizeLabel }}</div>
 
-    <button class="add-more-btn" (click)="addMore()" *ngIf="selectedCategory !== 'apps'">
-      + More
-    </button>
-
-    <ion-button expand="block" (click)="sendFile()">
-      SEND
-    </ion-button>
-  </div>
-</div>
 
 </ion-content>

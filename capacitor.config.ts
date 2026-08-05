@@ -15,7 +15,7 @@ const config: CapacitorConfig = {
   webDir: 'www',
 
   server: {
-    url: 'http://10.144.234.241:3000',
+    url: 'http://10.13.2.241:3000',
     cleartext: true
   }
 };

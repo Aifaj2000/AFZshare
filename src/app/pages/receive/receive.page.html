@@ -1,0 +1,114 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/share"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Receive</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content fullscreen>
+
+  <!-- Permission Screen -->
+
+  <div *ngIf="!showConnectUI">
+
+    <h2>Before you Recive items</h2>
+
+    <p class="subtitle">
+      Give AFZ Receive the required permissions and turn on wireless services.
+    </p>
+
+    <div class="permission-card">
+
+      <div class="permission-item">
+        <div class="info">
+          <ion-icon name="wifi-outline"></ion-icon>
+          <div>
+            <h3>Wi-Fi</h3>
+            <p>For connecting to other devices</p>
+          </div>
+        </div>
+
+        <ion-button size="small" *ngIf="!wifiEnabled" (click)="enableWifi()">
+          Turn On
+        </ion-button>
+        <ion-icon *ngIf="wifiEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+      </div>
+
+      <div class="permission-item">
+        <div class="info">
+          <ion-icon name="bluetooth-outline"></ion-icon>
+          <div>
+            <h3>Bluetooth</h3>
+            <p>For discovering nearby devices</p>
+          </div>
+        </div>
+
+        <ion-button size="small" *ngIf="!bluetoothEnabled" (click)="enableBluetooth()">
+          Turn On
+        </ion-button>
+        <ion-icon *ngIf="bluetoothEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+      </div>
+
+      <div class="permission-item">
+        <div class="info">
+          <ion-icon name="location-outline"></ion-icon>
+          <div>
+            <h3>Location</h3>
+            <p>Required by Android to scan for nearby devices</p>
+          </div>
+        </div>
+
+        <ion-button size="small" *ngIf="!locationEnabled" (click)="enableLocation()">
+          Turn On
+        </ion-button>
+        <ion-icon *ngIf="locationEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div *ngIf="showConnectUI" class="container">
+
+    <h2>Receive Files</h2>
+
+    <p>
+      Show this QR code to the sender or
+      wait for nearby devices.
+    </p>
+
+    <div class="qr-box">
+      <ion-icon [name]="status === 'connected' ? 'checkmark-circle-outline' : 'qr-code-outline'" class="qr-icon"
+        [class.connected]="status === 'connected'">
+      </ion-icon>
+    </div>
+
+    <h4 *ngIf="status === 'waiting'">Searching for nearby senders...</h4>
+    <h4 *ngIf="status === 'incoming'">Connecting to {{ senderName }}...</h4>
+    <h4 *ngIf="status === 'connected'">Connected to {{ senderName }}</h4>
+
+    <div class="pulse" *ngIf="status !== 'connected'">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="status">
+      {{ status === 'waiting' ? 'Waiting for connection...' : status === 'incoming' ? 'Accepting request...' : 'Ready to
+      receive files' }}
+    </div>
+
+  </div>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <ion-button *ngIf="!showConnectUI" expand="block" shape="round" [disabled]="!allPermissionsEnabled"
+      (click)="continue()">
+      CONTINUE
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

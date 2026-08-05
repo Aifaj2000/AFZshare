@@ -14,6 +14,7 @@ export const routes: Routes = [
           path: 'history',
           loadComponent: () => import('./history/history.page').then( m => m.HistoryPage)
         },
+        
       {
         path: '',
         redirectTo: '/tabs/share',

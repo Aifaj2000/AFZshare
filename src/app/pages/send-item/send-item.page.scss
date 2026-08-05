@@ -1,0 +1,279 @@
+ion-content {
+
+  --background: #121212;
+
+}
+
+.image-section {
+
+  display: flex;
+
+  justify-content: center;
+
+  margin-top: 30px;
+
+}
+
+.image-section img {
+
+  width: 220px;
+
+}
+
+h2 {
+
+  color: white;
+
+  text-align: center;
+
+  margin-top: 20px;
+
+  font-size: 24px;
+
+  font-weight: 600;
+
+}
+
+.subtitle {
+
+  color: #a9a9a9;
+
+  text-align: center;
+
+  margin: 15px 30px 35px;
+
+  line-height: 24px;
+
+  font-size: 15px;
+
+}
+
+.permission-card {
+
+  background: #1f1f1f;
+
+  margin: 0 16px;
+
+  border-radius: 18px;
+
+  overflow: hidden;
+
+}
+
+.permission-item {
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 18px;
+
+  border-bottom: 1px solid #303030;
+
+}
+
+.permission-item:last-child {
+
+  border-bottom: none;
+
+}
+
+.info {
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+.info ion-icon {
+
+  font-size: 34px;
+
+  color: white;
+
+  margin-right: 16px;
+
+}
+
+.info h3 {
+
+  color: white;
+
+  margin: 0;
+
+  font-size: 17px;
+
+}
+
+.info p {
+
+  color: #9c9c9c;
+
+  margin-top: 4px;
+
+  font-size: 13px;
+
+}
+
+.done {
+
+  font-size: 28px;
+
+}
+
+ion-footer {
+
+  background: #121212;
+
+  padding: 12px 16px 22px;
+
+}
+
+ion-toolbar {
+
+  --background: #121212;
+
+}
+
+ion-button {
+
+  --background: #1976ff;
+
+  --border-radius: 28px;
+
+  height: 52px;
+
+  font-size: 16px;
+
+  font-weight: 600;
+
+}
+
+.connect-page{
+
+  text-align:center;
+
+  padding:20px;
+
+}
+
+.qr-box{
+
+  width:220px;
+
+  height:220px;
+
+  background:#1f1f1f;
+
+  border-radius:20px;
+
+  margin:30px auto;
+
+  display:flex;
+
+  justify-content:center;
+
+  align-items:center;
+
+}
+
+.qr-icon{
+
+  font-size:140px;
+
+  color:#2196f3;
+
+}
+
+.search-card{
+
+  margin-top:50px;
+
+}
+
+.search-card h3{
+
+  color:white;
+
+  margin-bottom:40px;
+
+}
+
+.pulse{
+
+  position:relative;
+
+  width:220px;
+
+  height:220px;
+
+  margin:auto;
+
+}
+
+.pulse span{
+
+  position:absolute;
+
+  left:50%;
+
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  border:4px solid #2196f3;
+
+  border-radius:50%;
+
+  animation:ripple 2.5s infinite;
+
+}
+
+.pulse span:nth-child(1){
+
+  width:70px;
+
+  height:70px;
+
+}
+
+.pulse span:nth-child(2){
+
+  width:130px;
+
+  height:130px;
+
+  animation-delay:.6s;
+
+}
+
+.pulse span:nth-child(3){
+
+  width:190px;
+
+  height:190px;
+
+  animation-delay:1.2s;
+
+}
+
+@keyframes ripple{
+
+  0%{
+
+    opacity:1;
+    transform:translate(-50%,-50%) scale(.5);
+
+  }
+
+  100%{
+
+    opacity:0;
+    transform:translate(-50%,-50%) scale(1);
+
+  }
+
+}

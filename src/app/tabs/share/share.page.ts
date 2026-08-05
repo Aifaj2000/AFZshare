@@ -51,7 +51,7 @@ sendFile() {
 
   receiveFile() {
     console.log('Receive clicked');
-    // TODO: Navigate to Receive page
+    this.router.navigate(['/receive']);
   }
 
   async inviteFriends() {

@@ -1,0 +1,137 @@
+
+
+<ion-header class="ion-no-border">
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button></ion-back-button>
+    </ion-buttons>
+    <ion-title>Select items</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+
+
+<ion-content fullscreen>
+
+  <!-- Permission Screen -->
+
+  <div *ngIf="!showConnectUI">
+
+    <h2>Before you send items</h2>
+
+    <p class="subtitle">
+      Give AFZ Share the required permissions and turn on wireless services.
+    </p>
+
+    <div class="permission-card">
+
+      <div class="permission-item">
+
+        <div class="info">
+          <ion-icon name="wifi-outline"></ion-icon>
+
+          <div>
+            <h3>Wi-Fi</h3>
+            <p>For connecting to other devices</p>
+          </div>
+        </div>
+
+        <ion-button
+          size="small"
+          *ngIf="!wifiEnabled"
+          (click)="enableWifi()">
+          Turn On
+        </ion-button>
+
+        <ion-icon
+          *ngIf="wifiEnabled"
+          color="success"
+          class="done"
+          name="checkmark-circle">
+        </ion-icon>
+
+      </div>
+
+      <div class="permission-item">
+
+        <div class="info">
+          <ion-icon name="bluetooth-outline"></ion-icon>
+
+          <div>
+            <h3>Bluetooth</h3>
+            <p>For discovering nearby devices</p>
+          </div>
+        </div>
+
+        <ion-button
+          size="small"
+          *ngIf="!bluetoothEnabled"
+          (click)="enableBluetooth()">
+          Turn On
+        </ion-button>
+
+        <ion-icon
+          *ngIf="bluetoothEnabled"
+          color="success"
+          class="done"
+          name="checkmark-circle">
+        </ion-icon>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Connect Screen -->
+
+  <div *ngIf="showConnectUI" class="connect-page">
+
+    <h2>Scan QR code to connect</h2>
+
+    <div class="qr-box">
+
+      <ion-icon
+        name="qr-code-outline"
+        class="qr-icon">
+      </ion-icon>
+
+    </div>
+
+    <p class="subtitle">
+      Ask the receiver to scan this QR code.
+    </p>
+
+    <div class="search-card">
+
+      <h3>Searching nearby...</h3>
+
+      <div class="pulse">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>
+
+<ion-footer class="ion-no-border">
+
+  <ion-toolbar>
+
+    <ion-button
+      *ngIf="!showConnectUI"
+      expand="block"
+      shape="round"
+      (click)="continue()">
+
+      CONTINUE
+
+    </ion-button>
+
+  </ion-toolbar>
+
+</ion-footer>

@@ -40,6 +40,7 @@ import { ShareItem } from 'src/app/models/share-item.model';
 import { AppsListPlugin } from 'capacitor-apps-list';
 import { AppSize } from 'src/app/plugins/app-size.plugin';
 import { CapacitorMediaStore, MediaType } from '@odion-cloud/capacitor-mediastore';
+import { SelectionService } from 'src/app/services/selection';
 
 interface AppItem {
   id: number;
@@ -70,30 +71,33 @@ interface AppItem {
     IonLabel,
     IonSpinner,
     IonSearchbar,
-    IonFooter
   ]
 })
 export class SelectItemsPage {
 
 
   categories: { id: Category; icon: string; label: string }[] = [
-    { id: 'apps',   icon: 'grid-outline',                  label: 'Apps' },
-    { id: 'files',  icon: 'folder-outline',        label: 'Files' },
-    { id: 'photos', icon: 'image-outline',         label: 'Photos' },
-    { id: 'videos', icon: 'videocam-outline',      label: 'Videos' },
-    { id: 'music',  icon: 'musical-notes-outline', label: 'Music' },
+    { id: 'apps', icon: 'grid-outline', label: 'Apps' },
+    { id: 'files', icon: 'folder-outline', label: 'Files' },
+    { id: 'photos', icon: 'image-outline', label: 'Photos' },
+    { id: 'videos', icon: 'videocam-outline', label: 'Videos' },
+    { id: 'music', icon: 'musical-notes-outline', label: 'Music' },
   ];
 
   private readonly defaultIcons: Record<string, string> = {
-  app: 'assets/icon/app-generic.webp',
-  file: 'assets/icon/file-generic.webp',
-  photo: 'assets/icon/image-generic.webp',
-  video: 'assets/icon/video-thumb.webp',
-  music: 'assets/icon/music-note.webp',
-};
+    app: 'assets/icon/app-generic.webp',
+    file: 'assets/icon/file-generic.webp',
+    photo: 'assets/icon/image-generic.webp',
+    video: 'assets/icon/video-thumb.webp',
+    music: 'assets/icon/music-note.webp',
+  };
 
   selectedCategory: Category = 'apps';
   segment: 'installed' | 'packages' = 'installed';
+  private selectionStore = new Map<string, ShareItem>();
+  private categoryCache = new Map<string, ShareItem[]>();
+
+  
 
   loadingProgress = { current: 0, total: 0 };
 
@@ -103,7 +107,7 @@ export class SelectItemsPage {
   isSearching = false;
   loading = false;
 
-   constructor(private router: Router) {
+  constructor(private router: Router, private selectionService: SelectionService,) {
     addIcons({
       searchOutline,
       folderOutline,
@@ -120,40 +124,59 @@ export class SelectItemsPage {
     this.loadItems();
   }
 
-  async addMore() {
+  toggleApp(item: ShareItem) {
+  this.selectionService.toggle(item);
+}
+
+get selectedItems(): ShareItem[] {
+  return this.selectionService.items;
+}
+
+get selectedCount(): number {
+  return this.selectionService.count;
+}
+
+get selectedSizeLabel(): string {
+  return this.formatSize(this.selectionService.totalSizeBytes);
+}
+
+private getCacheKey(): string {
+  return this.selectedCategory === 'apps'
+    ? `apps-${this.segment}`
+    : this.selectedCategory;
+}
+
+async addMore() {
   let newItems: ShareItem[] = [];
 
   switch (this.selectedCategory) {
-    case 'photos':
-      newItems = await this.loadPhotos();
-      break;
-    case 'videos':
-      newItems = await this.loadVideos();
-      break;
-    case 'music':
-      newItems = await this.loadMusic();
-      break;
-    case 'files':
-      newItems = await this.loadFiles();
-      break;
+    case 'photos': newItems = await this.loadPhotos(); break;
+    case 'videos': newItems = await this.loadVideos(); break;
+    case 'music':  newItems = await this.loadMusic();  break;
+    case 'files':  newItems = await this.loadFiles();  break;
   }
 
-  // merge without duplicating existing items, keep new ones selected
   const existingIds = new Set(this.items.map(i => i.id));
   const merged = newItems.filter(i => !existingIds.has(i.id));
 
+  merged.forEach(item => {
+    item.selected = true;
+    this.selectionStore.set(item.id, item);
+  });
+
   this.items = [...this.items, ...merged];
+  this.categoryCache.set(this.selectedCategory, this.items); // keep cache in sync
   this.applySearch();
 }
 
   getIcon(item: ShareItem): string {
-  return item.icon && item.icon.trim() !== '' ? item.icon : this.defaultIcons[item.type];
-}
+    return item.icon && item.icon.trim() !== '' ? item.icon : this.defaultIcons[item.type];
+  }
 
-onImageError(event: Event, item: ShareItem) {
-  const target = event.target as HTMLImageElement;
-  target.src = this.defaultIcons[item.type];
-}
+  onImageError(event: Event, item: ShareItem) {
+    const target = event.target as HTMLImageElement;
+    target.src = this.defaultIcons[item.type];
+  }
 
   selectCategory(cat: Category) {
     if (this.selectedCategory === cat) return;
@@ -162,221 +185,229 @@ onImageError(event: Event, item: ShareItem) {
     this.loadItems();
   }
 
-  onSegmentChange(ev: any) {
-    this.segment = ev.detail.value;
-    this.loadItems();
+ async onSegmentChange(ev: any) {
+  if (this.loading) return;
+  this.segment = ev.detail.value;
+  await this.loadItems();
+}
+
+async doRefresh(event: any) {
+  this.categoryCache.delete(this.getCacheKey());
+  await this.loadItems();
+  event.target.complete();
+}
+
+
+async loadItems() {
+  this.loading = true;
+  const cacheKey = this.getCacheKey();
+
+  if (this.categoryCache.has(cacheKey)) {
+    this.items = this.categoryCache.get(cacheKey)!;
+    this.applySearch();
+    this.loading = false;
+    return;
   }
 
-  async loadItems() {
-    this.loading = true;
-    this.items = [];
+  this.items = [];
 
-    try {
-      switch (this.selectedCategory) {
-        case 'apps':
-          this.items = await this.loadApps();
-          break;
-        case 'files':
-          this.items = await this.loadFiles();
-          break;
-        case 'photos':
-          this.items = await this.loadPhotos();
-          break;
-        case 'videos':
-          this.items = await this.loadVideos();
-          break;
-        case 'music':
-          this.items = await this.loadMusic();
-          break;
-      }
-    } catch (err) {
-      console.error('Failed to load items', err);
-    } finally {
-      this.applySearch();
-      this.loading = false;
+  try {
+    switch (this.selectedCategory) {
+      case 'apps':
+        this.items = await this.loadApps();
+        break;
+      case 'files':
+        this.items = await this.loadFiles();
+        break;
+      case 'photos':
+        this.items = await this.loadPhotos();
+        break;
+      case 'videos':
+        this.items = await this.loadVideos();
+        break;
+      case 'music':
+        this.items = await this.loadMusic();
+        break;
+    }
+
+    this.items.forEach(item => this.selectionService.restore(item));
+
+    this.categoryCache.set(cacheKey, this.items);
+  } catch (err) {
+    console.error('Failed to load items', err);
+  } finally {
+    this.applySearch();
+    this.loading = false;
+  }
+}
+
+
+
+  private async loadApps(): Promise<ShareItem[]> {
+    const result = await AppsListPlugin.getAppsList();
+    const rawApps = result.androidApps ?? [];
+
+    this.loadingProgress = { current: 0, total: rawApps.length };
+
+    const apps = await Promise.all(
+      rawApps.map(async (a: any, i: number) => {
+        let sizeBytes = 0;
+        let isSystemApp = false;
+        let hasLauncherIcon = true; // safe default if native call fails or field missing
+
+        try {
+          const sizeResult = await AppSize.getAppSize({ packageName: a.packageName });
+          console.log('RAW:', a.packageName, JSON.stringify(sizeResult)); // TEMP: remove after confirming
+          sizeBytes = sizeResult.sizeBytes ?? 0;
+          isSystemApp = sizeResult.isSystemApp ?? false;
+          hasLauncherIcon = sizeResult.hasLauncherIcon ?? true;
+        } catch (err) {
+          console.warn(`Could not get details for ${a.packageName}`, err);
+        } finally {
+          this.loadingProgress.current++;
+        }
+
+        return {
+          id: `app-${i}-${a.packageName}`,
+          name: a.appName,
+          size: this.formatSize(sizeBytes),
+          sizeBytes,
+          icon: `data:image/png;base64,${a.base64Icon}`,
+          selected: false,
+          type: 'app' as const,
+          packageName: a.packageName,
+          category: this.categoryLabel(a.category),
+          isSystemApp,
+          hasLauncherIcon,
+        };
+      })
+    );
+
+    // "Installed" = apps the user installed themselves (can be uninstalled)
+    // "Packages"  = preinstalled system apps (Google Play Services, Maps, Settings, etc. — cannot be uninstalled)
+    console.log('Filtering apps for segment:', this.segment);
+    if (this.segment === 'installed') {
+      return apps.filter(app => !app.isSystemApp);
+    } else {
+      return apps.filter(app => app.isSystemApp);
     }
   }
 
 
-private async loadApps(): Promise<ShareItem[]> {
-  const result = await AppsListPlugin.getAppsList();
-  const rawApps = result.androidApps ?? [];
-
-  this.loadingProgress = { current: 0, total: rawApps.length };
-
-  const apps = await Promise.all(
-    rawApps.map(async (a: any, i: number) => {
-      let sizeBytes = 0;
-      let isSystemApp = false;
-      let hasLauncherIcon = true; // safe default if native call fails or field missing
-
-      try {
-        const sizeResult = await AppSize.getAppSize({ packageName: a.packageName });
-        console.log('RAW:', a.packageName, JSON.stringify(sizeResult)); // TEMP: remove after confirming
-        sizeBytes = sizeResult.sizeBytes ?? 0;
-        isSystemApp = sizeResult.isSystemApp ?? false;
-        hasLauncherIcon = sizeResult.hasLauncherIcon ?? true;
-      } catch (err) {
-        console.warn(`Could not get details for ${a.packageName}`, err);
-      } finally {
-        this.loadingProgress.current++;
-      }
-
-      return {
-        id: `app-${i}-${a.packageName}`,
-        name: a.appName,
-        size: this.formatSize(sizeBytes),
-        sizeBytes,
-        icon: `data:image/png;base64,${a.base64Icon}`,
-        selected: false,
-        type: 'app' as const,
-        packageName: a.packageName,
-        category: this.categoryLabel(a.category),
-        isSystemApp,
-        hasLauncherIcon,
-      };
-    })
-  );
-
-  // "Installed" = apps the user installed themselves (can be uninstalled)
-  // "Packages"  = preinstalled system apps (Google Play Services, Maps, Settings, etc. — cannot be uninstalled)
-  console.log('Filtering apps for segment:', this.segment);
-  if (this.segment === 'installed') {
-    return apps.filter(app => !app.isSystemApp);
-  } else {
-    return apps.filter(app => app.isSystemApp);
+  private categoryLabel(category: number): string {
+    const map: Record<number, string> = {
+      [-1]: 'Other', 0: 'Game', 1: 'Audio', 2: 'Video',
+      3: 'Image', 4: 'Social', 5: 'News', 6: 'Maps',
+      7: 'Productivity', 8: 'Accessibility',
+    };
+    return map[category] ?? 'Other';
   }
-}
-
-
-private categoryLabel(category: number): string {
-  const map: Record<number, string> = {
-    [-1]: 'Other', 0: 'Game', 1: 'Audio', 2: 'Video',
-    3: 'Image', 4: 'Social', 5: 'News', 6: 'Maps',
-    7: 'Productivity', 8: 'Accessibility',
-  };
-  return map[category] ?? 'Other';
-}
 
   private async loadPhotos(): Promise<ShareItem[]> {
-  const result = await Camera.pickImages({
-    quality: 90,
-    limit: 0,
-  });
+    const result = await Camera.pickImages({
+      quality: 90,
+      limit: 0,
+    });
 
-  const photos: ShareItem[] = await Promise.all(
-    result.photos.map(async (p, i) => {
-      let sizeBytes = 0;
-      try {
-        const response = await fetch(p.webPath!);
-        const blob = await response.blob();
-        sizeBytes = blob.size;
-      } catch (err) {
-        console.warn(`Could not get size for photo ${i}`, err);
-      }
+    const photos: ShareItem[] = await Promise.all(
+      result.photos.map(async (p, i) => {
+        let sizeBytes = 0;
+        try {
+          const response = await fetch(p.webPath!);
+          const blob = await response.blob();
+          sizeBytes = blob.size;
+        } catch (err) {
+          console.warn(`Could not get size for photo ${i}`, err);
+        }
 
-      return {
-        id: `photo-${i}`,
-        name: `Photo_${i + 1}`,
-        size: this.formatSize(sizeBytes),
-        sizeBytes,
-        icon: p.webPath!,
-        selected: true,
-        type: 'photo' as const,
-        path: p.path ?? p.webPath,
-      };
-    })
-  );
+        const uniqueId = `photo-${p.path ?? p.webPath}`;
 
-  return photos;
-}
+        return {
+          id: uniqueId,
+          name: p.path?.split('/').pop() ?? `Photo_${Date.now()}_${i}`,
+          size: this.formatSize(sizeBytes),
+          sizeBytes,
+          icon: p.webPath!,
+          selected: true,
+          type: 'photo' as const,
+          path: p.path ?? p.webPath,
+        };
+      })
+    );
+
+    console.log('Loaded photos:', photos);
+    return photos;
+  }
 
   private async loadFiles(): Promise<ShareItem[]> {
-  const result = await FilePicker.pickFiles({
-    limit: 0, // 0 = unlimited
-    readData: false,
-  });
-  return result.files.map((f, i) => ({
-    id: `file-${i}-${f.name}`,
-    name: f.name,
-    size: this.formatSize(f.size ?? 0),
-    sizeBytes: f.size ?? 0,
-    icon: 'assets/icon/file-generic.png',
-    selected: true,
-    type: 'file' as const,
-    path: f.path, // no webPath on FilePicker's File type
-  }));
-}
-
-
-private async loadVideos(): Promise<ShareItem[]> {
-  try {
-    await CapacitorMediaStore.requestPermissions({ types: ['video'] });
-
-    const result = await CapacitorMediaStore.getMediasByType({
-      mediaType: MediaType.VIDEO,
-      includeExternal: true,
+    const result = await FilePicker.pickFiles({
+      limit: 0, // 0 = unlimited
+      readData: false,
     });
-
-    return (result.media ?? []).map((m, i) => ({
-      id: `video-${i}-${m.id}`,
-      name: m.displayName ?? `Video_${i + 1}`,
-      size: this.formatSize(m.size ?? 0),
-      sizeBytes: m.size ?? 0,
-      icon: m.uri, // no separate thumbnailUri in this plugin — using file uri directly
-      selected: false,
-      type: 'video' as const,
-      path: m.uri,
+    return result.files.map((f, i) => ({
+      id: `file-${i}-${f.name}`,
+      name: f.name,
+      size: this.formatSize(f.size ?? 0),
+      sizeBytes: f.size ?? 0,
+      icon: 'assets/icon/file-generic.png',
+      selected: true,
+      type: 'file' as const,
+      path: f.path, // no webPath on FilePicker's File type
     }));
-  } catch (err) {
-    console.error('Failed to load videos', err);
-    return [];
-  }
-}
-
-private async loadMusic(): Promise<ShareItem[]> {
-  try {
-    await CapacitorMediaStore.requestPermissions({ types: ['audio'] });
-
-    const result = await CapacitorMediaStore.getMediasByType({
-      mediaType: MediaType.AUDIO,
-      sortBy: 'TITLE',
-      includeExternal: true,
-    });
-
-    return (result.media ?? []).map((m, i) => ({
-      id: `music-${i}-${m.id}`,
-      name: m.title ?? m.displayName ?? `Track_${i + 1}`,
-      size: this.formatSize(m.size ?? 0),
-      sizeBytes: m.size ?? 0,
-      icon: m.albumArtUri ?? 'assets/icon/music-note.png',
-      selected: false,
-      type: 'music' as const,
-      path: m.uri,
-    }));
-  } catch (err) {
-    console.error('Failed to load music', err);
-    return [];
-  }
-}
-
-
-  toggleApp(item: ShareItem) {
-    item.selected = !item.selected;
   }
 
-  get selectedItems(): ShareItem[] {
-    return this.items.filter(i => i.selected);
+
+  private async loadVideos(): Promise<ShareItem[]> {
+    try {
+      await CapacitorMediaStore.requestPermissions({ types: ['video'] });
+
+      const result = await CapacitorMediaStore.getMediasByType({
+        mediaType: MediaType.VIDEO,
+        includeExternal: true,
+      });
+
+      return (result.media ?? []).map((m, i) => ({
+        id: `video-${i}-${m.id}`,
+        name: m.displayName ?? `Video_${i + 1}`,
+        size: this.formatSize(m.size ?? 0),
+        sizeBytes: m.size ?? 0,
+        icon: m.uri, // no separate thumbnailUri in this plugin — using file uri directly
+        selected: false,
+        type: 'video' as const,
+        path: m.uri,
+      }));
+    } catch (err) {
+      console.error('Failed to load videos', err);
+      return [];
+    }
   }
 
-  get selectedCount(): number {
-    return this.selectedItems.length;
+  private async loadMusic(): Promise<ShareItem[]> {
+    try {
+      await CapacitorMediaStore.requestPermissions({ types: ['audio'] });
+
+      const result = await CapacitorMediaStore.getMediasByType({
+        mediaType: MediaType.AUDIO,
+        sortBy: 'TITLE',
+        includeExternal: true,
+      });
+
+      return (result.media ?? []).map((m, i) => ({
+        id: `music-${i}-${m.id}`,
+        name: m.title ?? m.displayName ?? `Track_${i + 1}`,
+        size: this.formatSize(m.size ?? 0),
+        sizeBytes: m.size ?? 0,
+        icon: m.albumArtUri ?? 'assets/icon/music-note.png',
+        selected: false,
+        type: 'music' as const,
+        path: m.uri,
+      }));
+    } catch (err) {
+      console.error('Failed to load music', err);
+      return [];
+    }
   }
 
-  get selectedSizeLabel(): string {
-    const totalBytes = this.selectedItems.reduce((sum, i) => sum + (i.sizeBytes || 0), 0);
-    return this.formatSize(totalBytes);
-  }
 
   toggleSearch() {
     this.isSearching = !this.isSearching;
@@ -400,7 +431,7 @@ private async loadMusic(): Promise<ShareItem[]> {
 
   sendFile() {
     if (this.selectedCount === 0) return;
-    this.router.navigate(['/tabs/send'], {
+    this.router.navigate(['/send-item'], {
       state: { items: this.selectedItems },
     });
   }
