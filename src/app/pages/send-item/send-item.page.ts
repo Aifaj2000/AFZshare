@@ -386,7 +386,7 @@ private async setupListeners() {
     await NearbyMultipeer.addListener('endpointFound', async (e: any) => {
       console.log('ENDPOINT FOUND:', JSON.stringify(e));
 
-      this.ngZone.run(() => {   // WRAP STATE CHANGES
+      this.ngZone.run(() => {
         if (!this.devices.some(d => d.endpointId === e.endpointId)) {
           this.devices.push({ endpointId: e.endpointId, endpointName: e.endpointName, connecting: false });
         }
@@ -419,12 +419,20 @@ private async setupListeners() {
   );
 
   this.listeners.push(
+  await NearbyMultipeer.addListener('connectionRequested', (e: any) => {
+    console.log('CONNECTION REQUESTED FROM (sender auto-accept):', JSON.stringify(e));
+    NearbyMultipeer.acceptConnection({ endpointId: e.endpointId });
+  })
+);
+
+  this.listeners.push(
     await NearbyMultipeer.addListener('connectionResult', (e: any) => {
       console.log('CONNECTION RESULT (sender):', JSON.stringify(e));
       this.ngZone.run(() => {
         if (e.status === 0) {
           this.connectedEndpointId = e.endpointId;
-          this.connectionStatus = 'Connected!';
+          this.connectionStatus = 'Connected! Sending files...';
+          this.startFileTransfer(e.endpointId);   // ADD THIS LINE
         } else {
           this.connectionStatus = 'Connection failed';
           this.devices.forEach(d => d.connecting = false);
@@ -432,6 +440,29 @@ private async setupListeners() {
       });
     })
   );
+}
+
+private async startFileTransfer(endpointId: string) {
+  const items = this.selectionService.items;
+  if (!items.length) {
+    this.connectionStatus = 'No files selected';
+    return;
+  }
+
+  try {
+    await this.fileShareService.sendFilesOverNearby(endpointId, items, (states, sent, total) => {
+      this.ngZone.run(() => {
+        this.transferStates = states;
+        this.bytesSent = sent;
+        this.totalBytes = total;
+      });
+    });
+    this.ngZone.run(() => { this.connectionStatus = 'Sent successfully'; });
+    this.selectionService.clear();
+  } catch (err) {
+    console.error(err);
+    this.ngZone.run(() => { this.connectionStatus = 'Transfer failed'; });
+  }
 }
 
 
