@@ -1,15 +1,11 @@
-
-
 <ion-header class="ion-no-border">
   <ion-toolbar color="dark">
     <ion-buttons slot="start">
-      <ion-back-button></ion-back-button>
+      <ion-back-button defaultHref="/tabs/share"></ion-back-button>
     </ion-buttons>
-    <ion-title>Select items</ion-title>
+    <ion-title>Send Item</ion-title>
   </ion-toolbar>
 </ion-header>
-
-
 
 <ion-content fullscreen>
 
@@ -17,121 +13,120 @@
 
   <div *ngIf="!showConnectUI">
 
-    <h2>Before you send items</h2>
+    <h2>Before you Recive items</h2>
 
     <p class="subtitle">
-      Give AFZ Share the required permissions and turn on wireless services.
+      Give AFZ Receive the required permissions and turn on wireless services.
     </p>
 
     <div class="permission-card">
 
       <div class="permission-item">
-
         <div class="info">
           <ion-icon name="wifi-outline"></ion-icon>
-
           <div>
             <h3>Wi-Fi</h3>
             <p>For connecting to other devices</p>
           </div>
         </div>
 
-        <ion-button
-          size="small"
-          *ngIf="!wifiEnabled"
-          (click)="enableWifi()">
+        <ion-button size="small" *ngIf="!wifiEnabled" (click)="enableWifi()">
           Turn On
         </ion-button>
-
-        <ion-icon
-          *ngIf="wifiEnabled"
-          color="success"
-          class="done"
-          name="checkmark-circle">
-        </ion-icon>
-
+        <ion-icon *ngIf="wifiEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
       </div>
 
       <div class="permission-item">
-
         <div class="info">
           <ion-icon name="bluetooth-outline"></ion-icon>
-
           <div>
             <h3>Bluetooth</h3>
             <p>For discovering nearby devices</p>
           </div>
         </div>
 
-        <ion-button
-          size="small"
-          *ngIf="!bluetoothEnabled"
-          (click)="enableBluetooth()">
+        <ion-button size="small" *ngIf="!bluetoothEnabled" (click)="enableBluetooth()">
           Turn On
         </ion-button>
+        <ion-icon *ngIf="bluetoothEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+      </div>
 
-        <ion-icon
-          *ngIf="bluetoothEnabled"
-          color="success"
-          class="done"
-          name="checkmark-circle">
-        </ion-icon>
+      <div class="permission-item">
+        <div class="info">
+          <ion-icon name="location-outline"></ion-icon>
+          <div>
+            <h3>Location</h3>
+            <p>Required by Android to scan for nearby devices</p>
+          </div>
+        </div>
 
+        <ion-button size="small" *ngIf="!locationEnabled" (click)="enableLocation()">
+          Turn On
+        </ion-button>
+        <ion-icon *ngIf="locationEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
       </div>
 
     </div>
 
   </div>
 
-  <!-- Connect Screen -->
+  <div *ngIf="showConnectUI" class="container">
 
-  <div *ngIf="showConnectUI" class="connect-page">
+  <h2>Send Files</h2>
 
-    <h2>Scan QR code to connect</h2>
+  <ion-button expand="block" (click)="scanReceiverQR()" [disabled]="isScanning">
+    <ion-icon name="qr-code-outline" slot="start"></ion-icon>
+    {{ isScanning ? 'Scanning...' : 'Scan Receiver QR Code' }}
+  </ion-button>
 
-    <div class="qr-box">
+  <ion-text color="medium" *ngIf="connectionStatus">
+    <p>{{ connectionStatus }}</p>
+  </ion-text>
 
-      <ion-icon
-        name="qr-code-outline"
-        class="qr-icon">
-      </ion-icon>
+  <h4 class="nearby-heading" *ngIf="devices.length > 0">Nearby Devices</h4>
 
-    </div>
+  <ion-list *ngIf="devices.length > 0">
+    <ion-item *ngFor="let d of devices" button (click)="connectToDeviceDirect(d)" [disabled]="d.connecting">
+      <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
+      <ion-label>{{ d.endpointName }}</ion-label>
+      <ion-spinner slot="end" *ngIf="d.connecting"></ion-spinner>
+    </ion-item>
+  </ion-list>
 
-    <p class="subtitle">
-      Ask the receiver to scan this QR code.
-    </p>
+  <ion-text color="medium" *ngIf="devices.length === 0">
+    <p class="searching-text">Searching for nearby devices...</p>
+  </ion-text>
 
-    <div class="search-card">
+</div>
 
-      <h3>Searching nearby...</h3>
 
-      <div class="pulse">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-
-    </div>
-
+  <div class="overall-progress" *ngIf="totalBytes > 0">
+    <ion-progress-bar [value]="bytesSent / totalBytes"></ion-progress-bar>
+    <p>{{ formatBytes(bytesSent) }} / {{ formatBytes(totalBytes) }}</p>
   </div>
+
+  <ion-list>
+    <ion-item *ngFor="let s of transferStates">
+      <ion-icon [name]="s.item.icon" slot="start"></ion-icon>
+      <ion-label>
+        <h3>{{ s.item.name }}</h3>
+        <p>{{ formatBytes(s.item.sizeBytes) }}</p>
+      </ion-label>
+
+      <ion-spinner slot="end" *ngIf="s.status === 'sending'"></ion-spinner>
+      <ion-icon slot="end" name="checkmark-circle" color="success" *ngIf="s.status === 'sent'"></ion-icon>
+      <ion-icon slot="end" name="close-circle" color="danger" *ngIf="s.status === 'failed'"></ion-icon>
+      <ion-icon slot="end" name="ellipse-outline" color="medium" *ngIf="s.status === 'pending'"></ion-icon>
+    </ion-item>
+  </ion-list>
 
 </ion-content>
 
-<ion-footer class="ion-no-border">
-
+<ion-footer>
   <ion-toolbar>
-
-    <ion-button
-      *ngIf="!showConnectUI"
-      expand="block"
-      shape="round"
+    <ion-button *ngIf="!showConnectUI" expand="block" shape="round" [disabled]="!allPermissionsEnabled"
       (click)="continue()">
-
       CONTINUE
-
     </ion-button>
-
   </ion-toolbar>
-
 </ion-footer>

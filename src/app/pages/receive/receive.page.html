@@ -10,10 +10,9 @@
 <ion-content fullscreen>
 
   <!-- Permission Screen -->
-
   <div *ngIf="!showConnectUI">
 
-    <h2>Before you Recive items</h2>
+    <h2>Before you Receive items</h2>
 
     <p class="subtitle">
       Give AFZ Receive the required permissions and turn on wireless services.
@@ -29,10 +28,7 @@
             <p>For connecting to other devices</p>
           </div>
         </div>
-
-        <ion-button size="small" *ngIf="!wifiEnabled" (click)="enableWifi()">
-          Turn On
-        </ion-button>
+        <ion-button size="small" *ngIf="!wifiEnabled" (click)="enableWifi()">Turn On</ion-button>
         <ion-icon *ngIf="wifiEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
       </div>
 
@@ -44,10 +40,7 @@
             <p>For discovering nearby devices</p>
           </div>
         </div>
-
-        <ion-button size="small" *ngIf="!bluetoothEnabled" (click)="enableBluetooth()">
-          Turn On
-        </ion-button>
+        <ion-button size="small" *ngIf="!bluetoothEnabled" (click)="enableBluetooth()">Turn On</ion-button>
         <ion-icon *ngIf="bluetoothEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
       </div>
 
@@ -59,10 +52,7 @@
             <p>Required by Android to scan for nearby devices</p>
           </div>
         </div>
-
-        <ion-button size="small" *ngIf="!locationEnabled" (click)="enableLocation()">
-          Turn On
-        </ion-button>
+        <ion-button size="small" *ngIf="!locationEnabled" (click)="enableLocation()">Turn On</ion-button>
         <ion-icon *ngIf="locationEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
       </div>
 
@@ -70,35 +60,60 @@
 
   </div>
 
-  <div *ngIf="showConnectUI" class="container">
+ <!-- Waiting / Connected UI -->
+  <div *ngIf="showConnectUI && incomingItems.length === 0" class="container">
 
-    <h2>Receive Files</h2>
+  <h2>Receive Files</h2>
+  <p>Scan this code, or your device is visible to nearby senders.</p>
 
-    <p>
-      Show this QR code to the sender or
-      wait for nearby devices.
-    </p>
+  <div class="qr-box" *ngIf="status === 'waiting'">
+    <canvas #qrCanvas></canvas>
+  </div>
 
-    <div class="qr-box">
-      <ion-icon [name]="status === 'connected' ? 'checkmark-circle-outline' : 'qr-code-outline'" class="qr-icon"
-        [class.connected]="status === 'connected'">
-      </ion-icon>
+  <div class="radar-box" [class.hidden]="status === 'waiting'">
+    <ion-icon [name]="status === 'connected' ? 'checkmark-circle-outline' : 'wifi-outline'" class="radar-icon"
+      [class.connected]="status === 'connected'">
+    </ion-icon>
+  </div>
+
+  <h4 *ngIf="status === 'waiting'">Searching for nearby senders...</h4>
+  <h4 *ngIf="status === 'incoming'">Connecting to {{ senderName }}...</h4>
+  <h4 *ngIf="status === 'connected'">Connected to {{ senderName }}</h4>
+
+  <div class="pulse" *ngIf="status !== 'connected'">
+    <span></span><span></span><span></span>
+  </div>
+
+  <div class="status">
+    {{ status === 'waiting' ? 'Waiting for connection...' : status === 'incoming' ? 'Accepting request...' : 'Ready to receive files' }}
+  </div>
+
+</div>
+
+
+  <!-- Incoming transfer progress -->
+  <div *ngIf="incomingItems.length > 0" class="container">
+
+    <h2>Receiving from {{ senderName }}</h2>
+
+    <div class="overall-progress">
+      <ion-progress-bar [value]="overallBytesReceived / overallTotalBytes"></ion-progress-bar>
+      <p>{{ formatBytes(overallBytesReceived) }} / {{ formatBytes(overallTotalBytes) }}</p>
     </div>
 
-    <h4 *ngIf="status === 'waiting'">Searching for nearby senders...</h4>
-    <h4 *ngIf="status === 'incoming'">Connecting to {{ senderName }}...</h4>
-    <h4 *ngIf="status === 'connected'">Connected to {{ senderName }}</h4>
+    <ion-list>
+      <ion-item *ngFor="let item of incomingItems">
+        <ion-icon name="document-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>{{ item.name }}</h3>
+          <p>{{ formatBytes(item.bytesReceived) }} / {{ formatBytes(item.sizeBytes) }}</p>
+        </ion-label>
 
-    <div class="pulse" *ngIf="status !== 'connected'">
-      <span></span>
-      <span></span>
-      <span></span>
-    </div>
-
-    <div class="status">
-      {{ status === 'waiting' ? 'Waiting for connection...' : status === 'incoming' ? 'Accepting request...' : 'Ready to
-      receive files' }}
-    </div>
+        <ion-spinner slot="end" *ngIf="item.status === 'receiving'"></ion-spinner>
+        <ion-icon slot="end" name="checkmark-circle" color="success" *ngIf="item.status === 'done'"></ion-icon>
+        <ion-icon slot="end" name="ellipse-outline" color="medium" *ngIf="item.status === 'pending'"></ion-icon>
+      </ion-item>
+    </ion-list>
 
   </div>
 
