@@ -1,132 +1,563 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar color="dark">
+  <ion-toolbar>
+
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/share"></ion-back-button>
     </ion-buttons>
+
     <ion-title>Send Item</ion-title>
+
   </ion-toolbar>
 </ion-header>
 
+
 <ion-content fullscreen>
 
-  <!-- Permission Screen -->
 
-  <div *ngIf="!showConnectUI">
+  <!-- =====================================================
+       PERMISSION SCREEN
+  ====================================================== -->
 
-    <h2>Before you Recive items</h2>
+  <div
+    *ngIf="!showConnectUI"
+    class="permission-screen">
 
-    <p class="subtitle">
-      Give AFZ Receive the required permissions and turn on wireless services.
-    </p>
+
+    <!-- Heading -->
+
+    <div class="page-heading">
+
+      <div class="heading-icon">
+        <ion-icon name="phone-portrait-outline"></ion-icon>
+      </div>
+
+      <h1>Ready to Send</h1>
+
+      <p>
+        Give AFZ Share the required permissions and turn on
+        wireless services.
+      </p>
+
+    </div>
+
+
+    <!-- Permission Card -->
 
     <div class="permission-card">
 
+
+      <!-- Wi-Fi -->
+
       <div class="permission-item">
-        <div class="info">
-          <ion-icon name="wifi-outline"></ion-icon>
-          <div>
+
+        <div class="permission-info">
+
+          <div class="permission-icon wifi">
+            <ion-icon name="wifi-outline"></ion-icon>
+          </div>
+
+          <div class="permission-text">
+
             <h3>Wi-Fi</h3>
-            <p>For connecting to other devices</p>
+
+            <p>
+              For connecting to other devices
+            </p>
+
           </div>
+
         </div>
 
-        <ion-button size="small" *ngIf="!wifiEnabled" (click)="enableWifi()">
+
+        <ion-button
+          size="small"
+          *ngIf="!wifiEnabled"
+          (click)="enableWifi()">
+
           Turn On
+
         </ion-button>
-        <ion-icon *ngIf="wifiEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+
+
+        <ion-icon
+          *ngIf="wifiEnabled"
+          class="permission-done"
+          name="checkmark-circle">
+        </ion-icon>
+
       </div>
 
+
+      <!-- Bluetooth -->
+
       <div class="permission-item">
-        <div class="info">
-          <ion-icon name="bluetooth-outline"></ion-icon>
-          <div>
+
+        <div class="permission-info">
+
+          <div class="permission-icon bluetooth">
+            <ion-icon name="bluetooth-outline"></ion-icon>
+          </div>
+
+          <div class="permission-text">
+
             <h3>Bluetooth</h3>
-            <p>For discovering nearby devices</p>
+
+            <p>
+              For discovering nearby devices
+            </p>
+
           </div>
+
         </div>
 
-        <ion-button size="small" *ngIf="!bluetoothEnabled" (click)="enableBluetooth()">
+
+        <ion-button
+          size="small"
+          *ngIf="!bluetoothEnabled"
+          (click)="enableBluetooth()">
+
           Turn On
+
         </ion-button>
-        <ion-icon *ngIf="bluetoothEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+
+
+        <ion-icon
+          *ngIf="bluetoothEnabled"
+          class="permission-done"
+          name="checkmark-circle">
+        </ion-icon>
+
       </div>
+
+
+      <!-- Location -->
 
       <div class="permission-item">
-        <div class="info">
-          <ion-icon name="location-outline"></ion-icon>
-          <div>
-            <h3>Location</h3>
-            <p>Required by Android to scan for nearby devices</p>
+
+        <div class="permission-info">
+
+          <div class="permission-icon location">
+            <ion-icon name="location-outline"></ion-icon>
           </div>
+
+          <div class="permission-text">
+
+            <h3>Location</h3>
+
+            <p>
+              Required by Android to scan for nearby devices
+            </p>
+
+          </div>
+
         </div>
 
-        <ion-button size="small" *ngIf="!locationEnabled" (click)="enableLocation()">
+
+        <ion-button
+          size="small"
+          *ngIf="!locationEnabled"
+          (click)="enableLocation()">
+
           Turn On
+
         </ion-button>
-        <ion-icon *ngIf="locationEnabled" color="success" class="done" name="checkmark-circle"></ion-icon>
+
+
+        <ion-icon
+          *ngIf="locationEnabled"
+          class="permission-done"
+          name="checkmark-circle">
+        </ion-icon>
+
       </div>
+
+    </div>
+
+
+    <!-- Continue -->
+
+    <div class="continue-wrapper">
+
+      <ion-button
+        expand="block"
+        shape="round"
+        [disabled]="!allPermissionsEnabled"
+        (click)="continue()">
+
+        Continue
+
+      </ion-button>
 
     </div>
 
   </div>
 
-  <div *ngIf="showConnectUI" class="container">
-
-  <h2>Send Files</h2>
-
-  <ion-button expand="block" (click)="scanReceiverQR()" [disabled]="isScanning">
-    <ion-icon name="qr-code-outline" slot="start"></ion-icon>
-    {{ isScanning ? 'Scanning...' : 'Scan Receiver QR Code' }}
-  </ion-button>
-
-  <ion-text color="medium" *ngIf="connectionStatus">
-    <p>{{ connectionStatus }}</p>
-  </ion-text>
-
-  <h4 class="nearby-heading" *ngIf="devices.length > 0">Nearby Devices</h4>
-
-  <ion-list *ngIf="devices.length > 0">
-    <ion-item *ngFor="let d of devices" button (click)="connectToDeviceDirect(d)" [disabled]="d.connecting">
-      <ion-icon name="phone-portrait-outline" slot="start"></ion-icon>
-      <ion-label>{{ d.endpointName }}</ion-label>
-      <ion-spinner slot="end" *ngIf="d.connecting"></ion-spinner>
-    </ion-item>
-  </ion-list>
-
-  <ion-text color="medium" *ngIf="devices.length === 0">
-    <p class="searching-text">Searching for nearby devices...</p>
-  </ion-text>
-
-</div>
 
 
-  <div class="overall-progress" *ngIf="totalBytes > 0">
-    <ion-progress-bar [value]="bytesSent / totalBytes"></ion-progress-bar>
-    <p>{{ formatBytes(bytesSent) }} / {{ formatBytes(totalBytes) }}</p>
+  <!-- =====================================================
+       SEND / CONNECT SCREEN
+  ====================================================== -->
+
+  <div
+    *ngIf="showConnectUI && !isSharingStarted"
+    class="send-container">
+
+
+    <!-- Header -->
+
+    <div class="send-heading">
+
+      <div class="send-icon">
+        <ion-icon name="qr-code-outline"></ion-icon>
+      </div>
+
+      <h1>Send Files</h1>
+
+      <p>
+        Connect to a nearby device and securely send your files.
+      </p>
+
+    </div>
+
+
+    <!-- Scan Receiver -->
+
+    <div class="scan-card">
+
+      <div class="scan-card-icon">
+        <ion-icon name="qr-code-outline"></ion-icon>
+      </div>
+
+
+      <div class="scan-card-content">
+
+        <h3>Scan Receiver</h3>
+
+        <p>
+          Scan the receiver's QR code to connect quickly.
+        </p>
+
+      </div>
+
+
+      <ion-button
+        class="scan-button"
+        (click)="scanReceiverQR()"
+        [disabled]="isScanning">
+
+        {{ isScanning ? 'Scanning...' : 'Scan' }}
+
+      </ion-button>
+
+    </div>
+
+
+    <!-- Connection Status -->
+
+    <div
+      class="connection-status"
+      *ngIf="connectionStatus">
+
+      <span class="status-dot"></span>
+
+      <span>
+        {{ connectionStatus }}
+      </span>
+
+    </div>
+
+
+    <!-- =================================================
+         NEARBY DEVICES
+    ================================================== -->
+
+    <div
+      class="section-header"
+      *ngIf="devices.length > 0">
+
+      <div>
+
+        <h2>Nearby Devices</h2>
+
+        <p>
+          Select a device to connect
+        </p>
+
+      </div>
+
+
+      <span class="device-count">
+        {{ devices.length }}
+      </span>
+
+    </div>
+
+
+    <div
+      class="devices-card"
+      *ngIf="devices.length > 0">
+
+      <ion-list>
+
+        <ion-item
+          *ngFor="let d of devices"
+          button
+          lines="none"
+          [disabled]="d.connecting"
+          (click)="connectToDeviceDirect(d)"
+          class="device-item">
+
+
+          <div class="device-icon">
+
+            <ion-icon
+              name="phone-portrait-outline">
+            </ion-icon>
+
+          </div>
+
+
+          <ion-label>
+
+            <h3>
+              {{ d.endpointName }}
+            </h3>
+
+            <p>
+              Nearby device
+            </p>
+
+          </ion-label>
+
+
+          <!-- Connecting -->
+
+          <ion-spinner
+            *ngIf="d.connecting"
+            slot="end">
+          </ion-spinner>
+
+
+        </ion-item>
+
+      </ion-list>
+
+    </div>
+
+
+    <!-- =================================================
+         SEARCHING
+    ================================================== -->
+
+    <div
+      class="searching-card"
+      *ngIf="devices.length === 0">
+
+
+      <div class="search-animation">
+
+        <span></span>
+        <span></span>
+        <span></span>
+
+        <ion-icon
+          name="wifi-outline">
+        </ion-icon>
+
+      </div>
+
+
+      <h3>
+        Searching for nearby devices
+      </h3>
+
+
+      <p>
+        Make sure the receiver has AFZ Share open
+        and is ready to receive.
+      </p>
+
+    </div>
+
+
   </div>
 
-  <ion-list>
-    <ion-item *ngFor="let s of transferStates">
-      <ion-icon [name]="s.item.icon" slot="start"></ion-icon>
-      <ion-label>
-        <h3>{{ s.item.name }}</h3>
-        <p>{{ formatBytes(s.item.sizeBytes) }}</p>
-      </ion-label>
 
-      <ion-spinner slot="end" *ngIf="s.status === 'sending'"></ion-spinner>
-      <ion-icon slot="end" name="checkmark-circle" color="success" *ngIf="s.status === 'sent'"></ion-icon>
-      <ion-icon slot="end" name="close-circle" color="danger" *ngIf="s.status === 'failed'"></ion-icon>
-      <ion-icon slot="end" name="ellipse-outline" color="medium" *ngIf="s.status === 'pending'"></ion-icon>
-    </ion-item>
-  </ion-list>
+
+  <!-- =====================================================
+       TRANSFER / SENDING SCREEN
+
+       Only shown after sharing starts
+  ====================================================== -->
+
+  <div
+    class="transfer-section"
+    *ngIf="isSharingStarted">
+
+
+    <!-- Transfer Header -->
+
+    <div class="section-header">
+
+      <div>
+
+        <h2>
+          Sending Files
+        </h2>
+
+        <p>
+          Transfer progress
+        </p>
+
+      </div>
+
+
+      <strong>
+
+        {{
+          totalBytes > 0
+            ? ((bytesSent / totalBytes) * 100 | number:'1.0-0')
+            : 0
+        }}%
+
+      </strong>
+
+    </div>
+
+
+
+    <!-- Overall Progress -->
+
+    <div class="progress-card">
+
+      <ion-progress-bar
+        [value]="totalBytes > 0 ? bytesSent / totalBytes : 0">
+      </ion-progress-bar>
+
+
+      <div class="progress-details">
+
+        <span>
+          {{ formatBytes(bytesSent) }}
+        </span>
+
+        <span>
+          {{ formatBytes(totalBytes) }}
+        </span>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         FILE LIST
+    ================================================== -->
+
+    <div class="files-card">
+
+      <ion-list>
+
+        <ion-item
+          *ngFor="let s of transferStates"
+          lines="none"
+          class="file-item">
+
+
+          <!-- File Icon -->
+
+          <div class="file-icon">
+
+            <ion-icon
+              [name]="s.item.icon">
+            </ion-icon>
+
+          </div>
+
+
+          <!-- File Details -->
+
+          <ion-label>
+
+            <h3>
+              {{ s.item.name }}
+            </h3>
+
+            <p>
+              {{ formatBytes(s.item.sizeBytes) }}
+            </p>
+
+          </ion-label>
+
+
+          <!-- =========================
+               SENDING
+          ========================== -->
+
+          <div
+            class="file-status"
+            *ngIf="s.status === 'sending'">
+
+            <ion-spinner>
+            </ion-spinner>
+
+          </div>
+
+
+          <!-- =========================
+               SENT
+          ========================== -->
+
+          <div
+            class="file-status sent"
+            *ngIf="s.status === 'sent'">
+
+            <ion-icon
+              name="checkmark-circle">
+            </ion-icon>
+
+          </div>
+
+
+          <!-- =========================
+               FAILED
+          ========================== -->
+
+          <div
+            class="file-status failed"
+            *ngIf="s.status === 'failed'">
+
+            <ion-icon
+              name="close-circle">
+            </ion-icon>
+
+          </div>
+
+
+          <!-- =========================
+               PENDING
+          ========================== -->
+
+          <div
+            class="file-status pending"
+            *ngIf="s.status === 'pending'">
+
+            <ion-icon
+              name="ellipse-outline">
+            </ion-icon>
+
+          </div>
+
+
+        </ion-item>
+
+      </ion-list>
+
+    </div>
+
+
+  </div>
+
 
 </ion-content>
-
-<ion-footer>
-  <ion-toolbar>
-    <ion-button *ngIf="!showConnectUI" expand="block" shape="round" [disabled]="!allPermissionsEnabled"
-      (click)="continue()">
-      CONTINUE
-    </ion-button>
-  </ion-toolbar>
-</ion-footer>

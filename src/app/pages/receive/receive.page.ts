@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { NearbyMultipeer } from '@squareetlabs/capacitor-nearby-multipeer';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonContent, IonIcon, IonButton, IonFooter, IonProgressBar,
+  IonContent, IonIcon, IonButton, IonProgressBar,
   IonList, IonItem, IonLabel, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -20,12 +20,16 @@ import { BleClient } from '@capacitor-community/bluetooth-le';
 import { AlertController } from '@ionic/angular';
 import { CapacitorWifi } from '@capgo/capacitor-wifi';
 import * as QRCode from 'qrcode';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Device } from '@capacitor/device';
+import { TransferHistoryService } from 'src/app/services/transfer-history.service';
 
 interface IncomingItem {
   name: string;
   sizeBytes: number;
-  status: 'pending' | 'receiving' | 'done';
+  status: 'pending' | 'receiving' | 'done' | 'saved';
   bytesReceived: number;
+  filePath?: string;
 }
 
 @Component({
@@ -35,13 +39,13 @@ interface IncomingItem {
   styleUrls: ['./receive.page.scss'],
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonButtons,
-    IonBackButton, IonContent, IonIcon, IonButton, IonFooter,
+    IonBackButton, IonContent, IonIcon, IonButton,
     IonProgressBar, IonList, IonItem, IonLabel, IonSpinner
   ]
 })
 export class ReceivePage implements OnDestroy {
 
-   @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
 
   pairingCode = '';
 
@@ -63,9 +67,9 @@ export class ReceivePage implements OnDestroy {
   overallBytesReceived = 0;
   overallTotalBytes = 0;
 
-  constructor(private router: Router, 
+  constructor(private router: Router,
     private alertCtrl: AlertController,
-    private ngZone: NgZone) {
+    private ngZone: NgZone,private transferHistory: TransferHistoryService) {
     addIcons({
       qrCodeOutline, checkmarkCircleOutline, wifiOutline,
       bluetoothOutline, locationOutline, checkmarkCircle,
@@ -77,23 +81,58 @@ export class ReceivePage implements OnDestroy {
     await this.requestAllPermissions();
   }
 
- 
+
 
   async startWaiting() {
     this.status = 'waiting';
     this.pairingCode = this.generatePairingCode();
 
     try {
-      await NearbyMultipeer.initialize({ serviceId: 'com.afzshare.app' });
-      await NearbyMultipeer.setStrategy({ strategy: 'P2P_STAR' });
-      await NearbyMultipeer.startAdvertising({
-        displayName: `MyDevice#${this.pairingCode}`,
+      // Create AFZShare folder on receiver
+      try {
+        await Filesystem.mkdir({
+          path: 'afzshare',
+          directory: Directory.Documents,
+          recursive: true
+        });
+
+        console.log('AFZSHARE folder created');
+      } catch (folderError) {
+        // Folder may already exist
+        console.log('AFZSHARE folder already exists:', folderError);
+      }
+
+      await NearbyMultipeer.initialize({
+        serviceId: 'com.afzshare.app'
       });
 
-      console.log('ADVERTISING STARTED as', `MyDevice#${this.pairingCode}`);
+      await NearbyMultipeer.setStrategy({
+        strategy: 'P2P_STAR'
+      });
 
-      // Draw QR after view updates so the canvas exists
+     const deviceInfo = await Device.getInfo();
+
+const deviceName =
+  deviceInfo.name ||
+  deviceInfo.model ||
+  'Android Device';
+
+await NearbyMultipeer.startAdvertising({
+  displayName: `${deviceName}#${this.pairingCode}`,
+});
+
+console.log(
+  'ADVERTISING STARTED as',
+  `${deviceName}#${this.pairingCode}`
+);
+
+      console.log(
+        'ADVERTISING STARTED as',
+        `MyDevice#${this.pairingCode}`
+      );
+
       setTimeout(() => this.renderQr(), 0);
+
     } catch (err) {
       console.error('Failed to start advertising', err);
     }
@@ -250,118 +289,298 @@ export class ReceivePage implements OnDestroy {
     await alert.present();
   }
 
- private async setupListeners() {
-  this.listeners.push(
-    await NearbyMultipeer.addListener('connectionRequested', async (e: any) => {
-      console.log('CONNECTION REQUESTED FROM:', JSON.stringify(e));
+  private async setupListeners() {
+    this.listeners.push(
+      await NearbyMultipeer.addListener('connectionRequested', async (e: any) => {
+        console.log('CONNECTION REQUESTED FROM:', JSON.stringify(e));
 
-      this.ngZone.run(() => {
-        this.status = 'incoming';
-        this.senderName = e.endpointName || 'Unknown device';
-        this.pendingEndpointId = e.endpointId;
-      });
-
-      const alert = await this.alertCtrl.create({
-        header: 'Incoming Connection',
-        message: `${e.endpointName || 'A device'} wants to connect and share files with you.`,
-        backdropDismiss: false,
-        buttons: [
-          {
-            text: 'Decline',
-            role: 'cancel',
-            handler: () => {
-              this.ngZone.run(() => { this.status = 'waiting'; });
-              try {
-                (NearbyMultipeer as any).rejectConnection?.({ endpointId: e.endpointId });
-              } catch (err) {
-                console.warn('rejectConnection not available', err);
-              }
-            },
-          },
-          {
-            text: 'Accept',
-            handler: () => {
-              NearbyMultipeer.acceptConnection({ endpointId: e.endpointId });
-            },
-          },
-        ],
-      });
-
-      await alert.present();
-    })
-  );
-
-  this.listeners.push(
-    await NearbyMultipeer.addListener('connectionResult', (e: any) => {
-      console.log('CONNECTION RESULT (receiver):', JSON.stringify(e));
-      this.ngZone.run(() => {
-        if (e.status === 0) {
-          this.status = 'connected';
-        } else {
-          this.status = 'waiting';
-        }
-      });
-    })
-  );
-
-  // Metadata sent by sender before each file (JSON via sendMessage)
-  this.listeners.push(
-    await NearbyMultipeer.addListener('message', (e: any) => {
-      console.log('MESSAGE RECEIVED:', JSON.stringify(e));
-      try {
-        const meta = JSON.parse(e.data);
         this.ngZone.run(() => {
-          if (meta.type === 'batch-start') {
-            this.incomingItems = meta.items.map((i: any) => ({
-              name: i.name,
-              sizeBytes: i.sizeBytes,
-              status: 'pending',
-              bytesReceived: 0,
-            }));
-            this.overallTotalBytes = meta.items.reduce((s: number, i: any) => s + i.sizeBytes, 0);
-            this.overallBytesReceived = 0;
-            this.currentItemIndex = 0;
-          } else if (meta.type === 'item-start') {
-            this.currentItemIndex = meta.index;
-            if (this.incomingItems[meta.index]) {
-              this.incomingItems[meta.index].status = 'receiving';
-            }
+          this.status = 'incoming';
+          this.senderName = e.endpointName || 'Unknown device';
+          this.pendingEndpointId = e.endpointId;
+        });
+
+        const alert = await this.alertCtrl.create({
+          header: 'Incoming Connection',
+          message: `${e.endpointName || 'A device'} wants to connect and share files with you.`,
+          backdropDismiss: false,
+          buttons: [
+            {
+              text: 'Decline',
+              role: 'cancel',
+              handler: () => {
+                this.ngZone.run(() => { this.status = 'waiting'; });
+                try {
+                  (NearbyMultipeer as any).rejectConnection?.({ endpointId: e.endpointId });
+                } catch (err) {
+                  console.warn('rejectConnection not available', err);
+                }
+              },
+            },
+            {
+              text: 'Accept',
+              handler: () => {
+                NearbyMultipeer.acceptConnection({ endpointId: e.endpointId });
+              },
+            },
+          ],
+        });
+
+        await alert.present();
+      })
+    );
+
+    this.listeners.push(
+      await NearbyMultipeer.addListener('connectionResult', (e: any) => {
+        console.log('CONNECTION RESULT (receiver):', JSON.stringify(e));
+        this.ngZone.run(() => {
+          if (e.status === 0) {
+            this.status = 'connected';
+          } else {
+            this.status = 'waiting';
           }
         });
-      } catch {
-        // not JSON metadata — ignore or handle plain text messages separately
-      }
-    })
-  );
+      })
+    );
 
-  this.listeners.push(
-    await NearbyMultipeer.addListener('payloadTransferUpdate', (e: any) => {
-      console.log('PAYLOAD TRANSFER UPDATE:', JSON.stringify(e));
-      this.ngZone.run(() => {
-        const item = this.incomingItems[this.currentItemIndex];
-        if (!item) return;
-
-        const delta = e.bytesTransferred - item.bytesReceived;
-        item.bytesReceived = e.bytesTransferred;
-        this.overallBytesReceived += delta;
-
-        if (e.status === 3) {
-          item.status = 'done';
-          item.bytesReceived = item.sizeBytes;
+    // Metadata sent by sender before each file (JSON via sendMessage)
+    this.listeners.push(
+      await NearbyMultipeer.addListener('message', (e: any) => {
+        console.log('MESSAGE RECEIVED:', JSON.stringify(e));
+        try {
+          const meta = JSON.parse(e.data);
+          this.ngZone.run(() => {
+            if (meta.type === 'batch-start') {
+              this.incomingItems = meta.items.map((i: any) => ({
+                name: i.name,
+                sizeBytes: i.sizeBytes,
+                status: 'pending',
+                bytesReceived: 0,
+              }));
+              this.overallTotalBytes = meta.items.reduce((s: number, i: any) => s + i.sizeBytes, 0);
+              this.overallBytesReceived = 0;
+              this.currentItemIndex = 0;
+            } else if (meta.type === 'item-start') {
+              this.currentItemIndex = meta.index;
+              if (this.incomingItems[meta.index]) {
+                this.incomingItems[meta.index].status = 'receiving';
+              }
+            }
+          });
+        } catch {
+          // not JSON metadata — ignore or handle plain text messages separately
         }
-      });
-    })
-  );
+      })
+    );
+
+
+    this.listeners.push(
+      await NearbyMultipeer.addListener(
+        'payloadTransferUpdate',
+        (e: any) => {
+
+          console.log(
+            'PAYLOAD TRANSFER UPDATE:',
+            JSON.stringify(e)
+          );
+
+          this.ngZone.run(() => {
+
+            /*
+             * Ignore the small BYTES payloads such as:
+             * batch-start
+             * item-start
+             *
+             * Find the actual receiving file by size.
+             */
+            const index =
+              this.incomingItems.findIndex(
+                (item: IncomingItem) =>
+                  item.status === 'receiving' &&
+                  item.sizeBytes === e.totalBytes
+              );
+
+            if (index === -1) {
+
+              console.log(
+                'No matching file for payload:',
+                e.payloadId,
+                'totalBytes:',
+                e.totalBytes
+              );
+
+              return;
+            }
+
+            const item =
+              this.incomingItems[index];
+
+            item.bytesReceived =
+              e.bytesTransferred;
+
+            this.overallBytesReceived =
+              this.incomingItems.reduce(
+                (total, current) =>
+                  total +
+                  (current.bytesReceived || 0),
+                0
+              );
+
+            /*
+             * File transfer completely received.
+             */
+            if (
+              e.bytesTransferred === e.totalBytes &&
+              e.totalBytes === item.sizeBytes
+            ) {
+
+              item.bytesReceived =
+                item.sizeBytes;
+
+              item.status = 'done';
+            }
+
+            console.log(
+              'FILE PROGRESS:',
+              item.name,
+              item.bytesReceived,
+              '/',
+              item.sizeBytes,
+              item.status
+            );
+          });
+        }
+      )
+    );
+
 
   this.listeners.push(
-    await NearbyMultipeer.addListener('endpointLost', () => {
-      console.log('ENDPOINT LOST');
+  await (NearbyMultipeer as any).addListener(
+    'fileReceived',
+    async (e: any) => {
+
+      console.log(
+        'FILE RECEIVED:',
+        JSON.stringify(e)
+      );
+
+
       this.ngZone.run(() => {
-        this.status = 'waiting';
+
+        const index = this.incomingItems.findIndex(
+          (item: IncomingItem) =>
+            item.name === e.fileName &&
+            item.status !== 'saved'
+        );
+
+
+        if (index === -1) {
+
+          console.warn(
+            'Received file not found in incomingItems:',
+            e.fileName
+          );
+
+          return;
+        }
+
+
+        const item =
+          this.incomingItems[index];
+
+
+        // Mark file as saved
+        item.status = 'saved';
+
+
+        // Save actual file path
+        item.filePath =
+          e.filePath;
+
+
+        // Make progress 100%
+        item.bytesReceived =
+          item.sizeBytes;
+
+
+        // Update overall progress
+        this.overallBytesReceived =
+          this.incomingItems.reduce(
+            (total, current) =>
+              total +
+              (current.bytesReceived || 0),
+            0
+          );
+
+
+        console.log(
+          'FILE SAVED:',
+          e.fileName
+        );
+
+
+        console.log(
+          'SAVED PATH:',
+          e.filePath
+        );
+
       });
-    })
-  );
-}
+
+
+      // ==========================================
+      // SAVE TO TRANSFER HISTORY
+      // ==========================================
+
+      const receivedItem =
+        this.incomingItems.find(
+          item => item.name === e.fileName
+        );
+
+
+      await this.transferHistory.addHistory({
+
+        name: e.fileName,
+
+        sizeBytes:
+          e.fileSize ||
+          receivedItem?.sizeBytes ||
+          0,
+
+        direction: 'received',
+
+        deviceName:
+          this.senderName ||
+          'Unknown device',
+
+        date: Date.now(),
+
+        status: 'completed',
+
+        filePath: e.filePath
+
+      });
+
+
+      console.log(
+        'RECEIVED HISTORY SAVED:',
+        e.fileName
+      );
+
+    }
+  )
+);
+
+
+
+    this.listeners.push(
+      await NearbyMultipeer.addListener('endpointLost', () => {
+        console.log('ENDPOINT LOST');
+        this.ngZone.run(() => {
+          this.status = 'waiting';
+        });
+      })
+    );
+  }
 
 
   formatBytes(bytes: number): string {
@@ -373,6 +592,37 @@ export class ReceivePage implements OnDestroy {
 
   async ngOnDestroy() {
     this.listeners.forEach(l => l.remove());
-    try { await NearbyMultipeer.stopAdvertising(); } catch {}
+    try { await NearbyMultipeer.stopAdvertising(); } catch { }
   }
+
+  private async createAfzShareFolder() {
+    try {
+      await Filesystem.mkdir({
+        path: 'afzshare',
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      console.log('AFZSHARE FOLDER READY');
+    } catch (err: any) {
+      // Folder may already exist
+      console.log('AFZSHARE FOLDER:', err);
+    }
+  }
+
+  async openFiles() {
+  try {
+    await AppLauncher.openUrl({
+      url: 'content://com.android.documentsui/root/primary'
+    });
+  } catch (error) {
+    console.error('Could not open Files:', error);
+  }
+}
+
+get allSaved(): boolean {
+  return this.incomingItems.length > 0 &&
+    this.incomingItems.every(item => item.status === 'saved');
+}
+
 }

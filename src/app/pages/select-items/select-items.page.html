@@ -1,11 +1,17 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar color="dark">
+
+  <ion-toolbar>
+
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/tabs/share"></ion-back-button>
     </ion-buttons>
 
-    <ion-title *ngIf="!isSearching">Select items</ion-title>
-    <ion-searchbar *ngIf="isSearching"
+    <ion-title *ngIf="!isSearching">
+      Select Items
+    </ion-title>
+
+    <ion-searchbar
+      *ngIf="isSearching"
       [value]="searchTerm"
       (ionInput)="onSearchInput($event)"
       placeholder="Search"
@@ -13,88 +19,283 @@
       (ionCancel)="toggleSearch()">
     </ion-searchbar>
 
-    <ion-buttons slot="end" *ngIf="!isSearching">
-      <ion-button (click)="toggleSearch()">
+    <ion-buttons
+      slot="end"
+      *ngIf="!isSearching">
+
+      <ion-button
+        fill="clear"
+        (click)="toggleSearch()">
+
         <ion-icon name="search-outline"></ion-icon>
+
       </ion-button>
+
     </ion-buttons>
+
   </ion-toolbar>
+
 </ion-header>
+
 
 <ion-content>
 
+
+  <!-- =====================================================
+       CATEGORY BAR
+  ====================================================== -->
+
   <div class="category-bar">
-    <div class="category"
+
+    <div
+      class="category"
       *ngFor="let cat of categories"
       [class.active]="selectedCategory === cat.id"
       (click)="selectCategory(cat.id)">
-      <ion-icon [name]="cat.icon"></ion-icon>
-      <span>{{ cat.label }}</span>
+
+      <div class="category-icon">
+
+        <ion-icon
+          [name]="cat.icon">
+        </ion-icon>
+
+      </div>
+
+      <span>
+        {{ cat.label }}
+      </span>
+
     </div>
+
   </div>
 
-  <div class="footer" *ngIf="selectedCount > 0">
-  <div class="bottom-bar">
-    <div class="count">{{ selectedCount }} · {{ selectedSizeLabel }}</div>
 
-    <button class="add-more-btn" (click)="addMore()" *ngIf="selectedCategory !== 'apps'">
-      + More
-    </button>
+  <!-- =====================================================
+       APP SEGMENT
+  ====================================================== -->
 
-    <ion-button expand="block" (click)="sendFile()">
-      SEND
-    </ion-button>
-  </div>
-</div>
+  <ion-segment
+    *ngIf="selectedCategory === 'apps'"
+    [value]="segment"
+    (ionChange)="onSegmentChange($event)">
 
-  <ion-segment  [value]="segment" (ionChange)="onSegmentChange($event)" *ngIf="selectedCategory === 'apps'">
     <ion-segment-button value="installed">
       <ion-label>Installed</ion-label>
     </ion-segment-button>
+
     <ion-segment-button value="packages">
       <ion-label>Packages</ion-label>
     </ion-segment-button>
+
   </ion-segment>
 
-  
 
-  <div class="loading-overlay" *ngIf="loading">
-  <ion-spinner name="crescent" color="light"></ion-spinner>
-  <p class="loading-text">Loading{{ selectedCategory === 'apps' ? ' apps' : '' }}...</p>
-</div>
+  <!-- =====================================================
+       LOADING
+  ====================================================== -->
 
-  <div class="ion-text-center ion-padding" *ngIf="!loading && filteredItems.length === 0">
-    <p>No items found</p>
+  <div
+    class="loading-container"
+    *ngIf="loading">
+
+    <div class="loading-card">
+
+      <ion-spinner name="crescent"></ion-spinner>
+
+      <p>
+        Loading{{ selectedCategory === 'apps' ? ' apps' : '' }}...
+      </p>
+
+    </div>
+
   </div>
 
-  <!-- App grid (unchanged) -->
-<div class="app-grid" *ngIf="!loading && selectedCategory === 'apps'">
-  @for (item of filteredItems; track item.id) {
-    <div class="app-card" (click)="toggleApp(item)">
-      <div class="check" *ngIf="item.selected">✓</div>
-      <img [src]="getIcon(item)" (error)="onImageError($event, item)">
-      <h4>{{ item.name }}</h4>
-      <p>{{ item.size }}</p>
-    </div>
-  }
-</div>
 
-<!-- List layout for files / photos / videos / music -->
-<div class="item-list" *ngIf="!loading && selectedCategory !== 'apps'">
-  @for (item of filteredItems; track item.id) {
-    <div class="list-row" (click)="toggleApp(item)">
-      <img class="thumb" [src]="getIcon(item)" (error)="onImageError($event, item)">
-      <div class="info">
-        <h4 class="name" [title]="item.name">{{ item.name }}</h4>
-        <p class="size">{{ item.size }}</p>
-      </div>
-      <div class="check-circle" [class.checked]="item.selected">
-        <ion-icon *ngIf="item.selected" name="checkmark"></ion-icon>
-      </div>
-    </div>
-  }
-</div>
+  <!-- =====================================================
+       EMPTY
+  ====================================================== -->
 
+  <div
+    class="empty-state"
+    *ngIf="!loading && filteredItems.length === 0">
+
+    <div class="empty-icon">
+      <ion-icon name="search-outline"></ion-icon>
+    </div>
+
+    <h3>No items found</h3>
+
+    <p>
+      Try another search or choose a different category.
+    </p>
+
+  </div>
+
+
+  <!-- =====================================================
+       APPS GRID
+  ====================================================== -->
+
+  <div
+    class="app-grid"
+    *ngIf="!loading && selectedCategory === 'apps'">
+
+    @for (item of filteredItems; track item.id) {
+
+      <div
+        class="app-card"
+        [class.selected]="item.selected"
+        (click)="toggleApp(item)">
+
+
+        <div
+          class="check"
+          *ngIf="item.selected">
+
+          <ion-icon name="checkmark"></ion-icon>
+
+        </div>
+
+
+        <div class="app-image">
+
+          <img
+            [src]="getIcon(item)"
+            (error)="onImageError($event, item)">
+
+        </div>
+
+
+        <h4>
+          {{ item.name }}
+        </h4>
+
+        <p>
+          {{ item.size }}
+        </p>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =====================================================
+       FILE / PHOTO / VIDEO / MUSIC LIST
+  ====================================================== -->
+
+  <div
+    class="item-list"
+    *ngIf="!loading && selectedCategory !== 'apps'">
+
+    @for (item of filteredItems; track item.id) {
+
+      <div
+        class="list-row"
+        [class.selected]="item.selected"
+        (click)="toggleApp(item)">
+
+
+        <div class="thumb-wrapper">
+
+          <img
+            class="thumb"
+            [src]="getIcon(item)"
+            (error)="onImageError($event, item)">
+
+        </div>
+
+
+        <div class="info">
+
+          <h4
+            class="name"
+            [title]="item.name">
+
+            {{ item.name }}
+
+          </h4>
+
+          <p class="size">
+            {{ item.size }}
+          </p>
+
+        </div>
+
+
+        <div
+          class="check-circle"
+          [class.checked]="item.selected">
+
+          <ion-icon
+            *ngIf="item.selected"
+            name="checkmark">
+          </ion-icon>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+
+  <!-- =====================================================
+       SELECTION ACTION BAR
+  ====================================================== -->
+
+  <div
+    class="selection-bar"
+    *ngIf="selectedCount > 0">
+
+
+    <div class="selection-info">
+
+      <div class="selection-count">
+        {{ selectedCount }}
+      </div>
+
+      <div class="selection-text">
+
+        <strong>
+          {{ selectedCount }}
+          {{ selectedCount === 1 ? 'item' : 'items' }}
+        </strong>
+
+        <span>
+          {{ selectedSizeLabel }}
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <div class="selection-actions">
+
+      <button
+        class="add-more-btn"
+        *ngIf="selectedCategory !== 'apps'"
+        (click)="addMore()">
+
+        + More
+
+      </button>
+
+
+      <ion-button
+        class="send-button"
+        (click)="sendFile()">
+
+        SEND
+
+      </ion-button>
+
+    </div>
+
+  </div>
 
 
 </ion-content>

@@ -1,259 +1,744 @@
 :host {
+  display: block;
   height: 100%;
 }
 
+
+/* =========================================================
+   PAGE
+========================================================= */
+
 ion-content {
+  --background: var(--ion-background-color);
+  --color: var(--ion-text-color);
+}
+
+
+.share-page {
   --padding-top: 0;
   --padding-bottom: 0;
   --padding-start: 0;
   --padding-end: 0;
-  --background: #7fdcff;
 }
 
-.share-page {
-  height: 100%;
+
+.share-container {
+  width: 100%;
+  max-width: 650px;
+  min-height: 100%;
+
+  margin: 0 auto;
+
+  padding:
+    calc(18px + env(safe-area-inset-top))
+    18px
+    110px;
+
+  box-sizing: border-box;
+
   display: flex;
   flex-direction: column;
 }
 
-/*==========================
-  TOP SECTION
-==========================*/
 
-.top-section {
-  position: relative;
-  height: 50vh;
-  background: linear-gradient(180deg, #001e8d 0%, #ffffff 100%);
-  overflow: hidden;
+/* =========================================================
+   HEADER
+========================================================= */
+
+.page-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom: 28px;
 }
 
-/* Curved Bottom */
-.top-section::after {
-  content: "";
-  position: absolute;
-  left: -10%;
-  bottom: -130px;
-  width: 120%;
-  height: 260px;
-  background: linear-gradient(180deg, #001e8d 0%, #e5e5e5 50%);
-  border-radius: 50%;
-}
 
-/*==========================
-TITLE
-==========================*/
-
-.title {
-  padding-top: 40px;
-  text-align: center;
-}
-
-.title h2 {
-  color: white;
-  font-size: 28px;
-  font-weight: 400;
-}
-
-/*==========================
-HELP
-==========================*/
-
-.help-section {
-  margin-top: 25px;
-  text-align: center;
-  color: white;
-}
-
-.help-btn {
-  width: 45px;
-  height: 45px;
-  margin: auto;
-  border-radius: 50%;
-  background: #f7a900;
+.title-section {
+  min-width: 0;
 
   display: flex;
-  justify-content: center;
+
   align-items: center;
 
+  gap: 12px;
+}
+
+
+.title-icon {
+  flex: 0 0 48px;
+
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 15px;
+
+  background: rgba(37, 99, 235, 0.12);
+
+  color: #2563eb;
+
+  font-size: 24px;
+}
+
+
+.title-section h1 {
+  margin: 0;
+
+  color: var(--ion-text-color);
+
+  font-size: clamp(19px, 5vw, 25px);
+
+  font-weight: 750;
+
+  line-height: 1.15;
+}
+
+
+.title-section p {
+  margin: 5px 0 0;
+
+  color: var(--ion-color-medium);
+
+  font-size: 11px;
+
+  line-height: 16px;
+}
+
+
+/* =========================================================
+   HELP BUTTON
+========================================================= */
+
+.help-button {
+  flex: 0 0 42px;
+
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--ion-border-color);
+
+  border-radius: 50%;
+
+  background: var(--ion-card-background);
+
+  color: var(--ion-text-color);
+
+  font-size: 21px;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease;
+}
+
+
+.help-button:active {
+  transform: scale(0.9);
+
+  background: rgba(128, 128, 128, 0.12);
+}
+
+
+/* =========================================================
+   MAIN
+========================================================= */
+
+.main-content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 14px;
+
+  flex: 1;
+}
+
+
+/* =========================================================
+   ACTION CARDS
+========================================================= */
+
+.action-card {
+  position: relative;
+
+  width: 100%;
+
+  min-height: 112px;
+
+  display: flex;
+
+  align-items: center;
+
+  padding: 17px;
+
+  box-sizing: border-box;
+
+  border: 1px solid var(--ion-border-color);
+
+  border-radius: 22px;
+
+  background: var(--ion-card-background);
+
+  overflow: hidden;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
   box-shadow:
-    0 0 10px rgba(255,170,0,.7),
-    0 0 25px rgba(255,170,0,.4);
+    0 5px 20px rgba(0, 0, 0, 0.05);
+
+  transition:
+    transform 0.16s ease,
+    border-color 0.2s ease;
 }
 
-.help-btn ion-icon {
-  font-size: 34px;
-  color: white;
+
+.action-card:active {
+  transform: scale(0.975);
 }
 
-.help-section p {
-  margin-top: 10px;
+
+/* =========================================================
+   SUBTLE BACKGROUND GLOW
+========================================================= */
+
+.action-card::after {
+  content: "";
+
+  position: absolute;
+
+  width: 130px;
+  height: 130px;
+
+  border-radius: 50%;
+
+  filter: blur(35px);
+
+  opacity: 0.12;
+
+  pointer-events: none;
+}
+
+
+.send-card::after {
+  right: -35px;
+  top: -40px;
+
+  background: #2563eb;
+}
+
+
+.receive-card::after {
+  left: -35px;
+  bottom: -40px;
+
+  background: #14b8a6;
+}
+
+
+/* =========================================================
+   ACTION CONTENT
+========================================================= */
+
+.action-content {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+/* =========================================================
+   ACTION ICON
+========================================================= */
+
+.action-icon {
+  flex: 0 0 62px;
+
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 19px;
+
+  font-size: 31px;
+}
+
+
+.send-icon {
+  background: rgba(37, 99, 235, 0.10);
+  color: #2563eb;
+}
+
+.receive-icon {
+  background: rgba(99, 102, 241, 0.10);
+  color: #6366f1;
+}
+
+
+/* =========================================================
+   ACTION TEXT
+========================================================= */
+
+.action-text {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+
+.action-label {
+  color: var(--ion-text-color);
+
+  font-size: 19px;
+
+  font-weight: 700;
+}
+
+
+.action-description {
+  max-width: 260px;
+
+  color: var(--ion-color-medium);
+
+  font-size: 12px;
+
+  line-height: 17px;
+}
+
+
+/* =========================================================
+   ARROW
+========================================================= */
+
+.action-arrow {
+  flex: 0 0 30px;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(128, 128, 128, 0.08);
+
+  color: var(--ion-color-medium);
+
   font-size: 18px;
 }
 
-/*==========================
-SEND
-==========================*/
 
-.send-wrapper {
-  position: absolute;
-  left: 40px;
-  bottom: 70px;
+/* =========================================================
+   INFO CARD
+========================================================= */
 
+.info-card {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  z-index: 5;
+
+  align-items: flex-start;
+
+  gap: 12px;
+
+  margin-top: 2px;
+
+  padding: 14px;
+
+  border-radius: 17px;
+
+  background: rgba(37, 99, 235, 0.07);
+
+  border: 1px solid rgba(37, 99, 235, 0.12);
 }
 
-.send-glow {
-  position: absolute;
-  left: -10px;
 
-  width: 120px;
-  height: 120px;
+.info-card > ion-icon {
+  flex: 0 0 21px;
 
-  border-radius: 50%;
-  background: rgba(53,154,255,.22);
+  margin-top: 2px;
 
-  filter: blur(12px);
+  color: #2563eb;
+
+  font-size: 21px;
 }
 
-.send-btn {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
 
-  background: #3ea8ff;
+.info-card strong {
+  display: block;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  margin-bottom: 3px;
 
-  box-shadow:
-    0 0 20px rgba(0,153,255,.6),
-    0 0 45px rgba(0,153,255,.35);
+  color: var(--ion-text-color);
 
-  z-index: 2;
+  font-size: 12px;
+
+  font-weight: 650;
 }
 
-.send-btn ion-icon {
-  font-size: 42px;
-  color: #ffffff;
+
+.info-card p {
+  margin: 0;
+
+  color: var(--ion-color-medium);
+
+  font-size: 10px;
+
+  line-height: 16px;
 }
 
-.send-wrapper span {
-  color: white;
-  font-size: 30px;
-  font-weight: 300;
-}
 
-/*==========================
-BOTTOM
-==========================*/
+/* =========================================================
+   BOTTOM ACTION
+========================================================= */
 
-.bottom-section {
-  position: relative;
-  height: 42vh;
-  background: linear-gradient(180deg, #e5e6e8 0%, #001e8d 72%);
-}
+.bottom-action {
+  position: fixed;
 
-/*==========================
-RECEIVE
-==========================*/
-
-.receive-wrapper {
-  position: absolute;
-  right: 35px;
-  top: 40px;
-
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.receive-wrapper span {
-  color: white;
-  font-size: 30px;
-  font-weight: 300;
-}
-
-.receive-glow {
-  position: absolute;
-  right: -12px;
-
-  width: 120px;
-  height: 120px;
-
-  border-radius: 50%;
-  background: rgba(24,46,145,.25);
-
-  filter: blur(12px);
-}
-
-.receive-btn {
-  width: 80px;
-  height: 80px;
-
-  border-radius: 50%;
-   background: #3ea8ff;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  box-shadow:
-    0 0 20px rgba(0,153,255,.6),
-    0 0 45px rgba(0,153,255,.35);
-
-  z-index: 2;
-}
-
-.receive-btn ion-icon {
-  font-size: 42px;
-  color: white;
-}
-
-/*==========================
-HISTORY
-==========================*/
-
-.history-container {
-  position: absolute;
   left: 0;
   right: 0;
-  bottom: 60px;
+
+  bottom: calc(62px + env(safe-area-inset-bottom));
+
+  z-index: 9999;
+
   display: flex;
   justify-content: center;
+
+  padding: 8px 16px;
+
+  box-sizing: border-box;
+
+  pointer-events: auto;
 }
 
 .invite-btn {
-  --background: #f4b524;
-  --color: #fff;
-  --border-radius: 25px;
-  --box-shadow: 0 8px 20px rgba(244, 181, 36, 0.4);
+  width: 100%;
+  max-width: 260px;
 
-  width: 140px;
-  height: 42px;
+  height: 46px;
 
-  font-size: 16px;
-  font-weight: 600;
+  margin: 0;
+
+  --background: #2563eb;
+  --background-activated: #1d4ed8;
+  --color: #ffffff;
+
+  --border-radius: 23px;
+
+  --box-shadow:
+    0 6px 18px rgba(37, 99, 235, 0.25);
+
+  font-size: 13px;
+  font-weight: 650;
 
   text-transform: none;
+
+  pointer-events: auto;
 }
 
-/*==========================
-ANIMATION
-==========================*/
+/* =========================================================
+   SMALL PHONES
+========================================================= */
 
-.send-btn,
-.receive-btn,
-.help-btn {
-  transition: .25s;
+@media (max-width: 360px) {
+
+  .share-container {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+
+  .page-header {
+    margin-bottom: 20px;
+  }
+
+
+  .title-icon {
+    flex-basis: 42px;
+
+    width: 42px;
+    height: 42px;
+
+    border-radius: 13px;
+
+    font-size: 21px;
+  }
+
+
+  .title-section {
+    gap: 9px;
+  }
+
+
+  .title-section h1 {
+    font-size: 18px;
+  }
+
+
+  .title-section p {
+    font-size: 10px;
+  }
+
+
+  .help-button {
+    flex-basis: 38px;
+
+    width: 38px;
+    height: 38px;
+
+    font-size: 19px;
+  }
+
+
+  .action-card {
+    min-height: 98px;
+
+    padding: 13px;
+
+    border-radius: 18px;
+  }
+
+
+  .action-content {
+    gap: 11px;
+  }
+
+
+  .action-icon {
+    flex-basis: 52px;
+
+    width: 52px;
+    height: 52px;
+
+    border-radius: 16px;
+
+    font-size: 26px;
+  }
+
+
+  .action-label {
+    font-size: 16px;
+  }
+
+
+  .action-description {
+    font-size: 10px;
+
+    line-height: 15px;
+  }
+
+
+  .action-arrow {
+    flex-basis: 27px;
+
+    width: 27px;
+    height: 27px;
+
+    font-size: 16px;
+  }
+
+
+  .info-card {
+    padding: 12px;
+  }
+
+
+  .bottom-action {
+    padding-top: 18px;
+  }
+
+
+  .invite-btn {
+    height: 43px;
+
+    font-size: 12px;
+  }
+
 }
 
-.send-btn:active,
-.receive-btn:active,
-.help-btn:active {
-  transform: scale(.92);
+
+/* =========================================================
+   MEDIUM PHONES
+========================================================= */
+
+@media (min-width: 361px) and (max-width: 480px) {
+
+  .action-card {
+    min-height: 105px;
+  }
+
 }
 
+
+/* =========================================================
+   LANDSCAPE PHONES
+========================================================= */
+
+@media (orientation: landscape) and (max-height: 500px) {
+
+  .share-container {
+    padding-top: 12px;
+  }
+
+
+  .page-header {
+    margin-bottom: 12px;
+  }
+
+
+  .main-content {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    align-items: start;
+  }
+
+
+  .info-card {
+    grid-column: 1 / -1;
+  }
+
+
+  .action-card {
+    min-height: 95px;
+  }
+
+
+  .bottom-action {
+    padding-top: 14px;
+  }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (min-width: 600px) {
+
+  .share-container {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+
+  .main-content {
+    gap: 16px;
+  }
+
+
+  .action-card {
+    min-height: 125px;
+
+    padding: 20px;
+
+    border-radius: 24px;
+  }
+
+
+  .action-icon {
+    flex-basis: 70px;
+
+    width: 70px;
+    height: 70px;
+
+    font-size: 34px;
+  }
+
+
+  .action-label {
+    font-size: 21px;
+  }
+
+
+  .action-description {
+    font-size: 13px;
+  }
+
+}
+
+
+/* =========================================================
+   DARK MODE
+========================================================= */
+
+@media (prefers-color-scheme: dark) {
+
+  .action-card {
+    box-shadow:
+      0 8px 25px rgba(0, 0, 0, 0.22);
+  }
+
+
+  .info-card {
+    background: rgba(37, 99, 235, 0.10);
+  }
+
+}
+
+
+/* =========================================================
+   LIGHT MODE
+========================================================= */
+
+@media (prefers-color-scheme: light) {
+
+  .action-card {
+    box-shadow:
+      0 5px 20px rgba(0, 0, 0, 0.05);
+  }
+
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .action-card,
+  .help-button {
+    transition: none;
+  }
+
+}

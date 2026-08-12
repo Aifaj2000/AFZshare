@@ -113,48 +113,164 @@ export class FileShareService {
 
   // ---------- NEARBYMULTIPEER — ACTIVE FLOW ----------
 
-  async sendFilesOverNearby(
-    endpointId: string,
-    items: ShareItem[],
-    onUpdate: (states: TransferItemState[], bytesSent: number, totalBytes: number) => void
-  ) {
-    const shareable = items.filter(i => !!i.path);
-    const totalBytes = shareable.reduce((sum, i) => sum + (i.sizeBytes || 0), 0);
-    const states: TransferItemState[] = shareable.map(item => ({ item, status: 'pending' }));
-    let bytesSent = 0;
+ async sendFilesOverNearby(
+  endpointId: string,
+  items: ShareItem[],
+  onUpdate: (
+    states: TransferItemState[],
+    bytesSent: number,
+    totalBytes: number
+  ) => void
+) {
+  console.log('========== NEARBY FILE SHARE START ==========');
+  console.log('Endpoint:', endpointId);
+  console.log('Items received:', items);
 
+  // IMPORTANT:
+  // Don't silently remove selected files without telling us why.
+  const shareable = items.filter(item => !!item.path);
+
+  console.log('Shareable items:', shareable);
+
+  if (!shareable.length) {
+    console.error('NO SHAREABLE FILES');
+    console.error(
+      'Items received but none contain item.path:',
+      items
+    );
+
+    throw new Error(
+      'No shareable files found. Selected files do not contain a valid path.'
+    );
+  }
+
+  const totalBytes = shareable.reduce(
+    (sum, item) => sum + (item.sizeBytes || 0),
+    0
+  );
+
+  const states: TransferItemState[] = shareable.map(item => ({
+    item,
+    status: 'pending'
+  }));
+
+  let bytesSent = 0;
+
+  // -----------------------------
+  // SEND BATCH METADATA
+  // -----------------------------
+
+  const batchMessage = {
+    type: 'batch-start',
+    items: shareable.map(item => ({
+      name: item.name,
+      sizeBytes: item.sizeBytes || 0
+    }))
+  };
+
+  console.log(
+    'SENDING BATCH METADATA:',
+    JSON.stringify(batchMessage)
+  );
+
+  await NearbyMultipeer.sendMessage({
+    endpointId,
+    data: JSON.stringify(batchMessage)
+  });
+
+  onUpdate([...states], bytesSent, totalBytes);
+
+  // -----------------------------
+  // SEND FILES
+  // -----------------------------
+
+  for (let i = 0; i < shareable.length; i++) {
+
+    const item = shareable[i];
+
+    console.log(`========== SENDING FILE ${i} ==========`);
+    console.log('Name:', item.name);
+    console.log('Path:', item.path);
+    console.log('Size:', item.sizeBytes);
+
+    states[i] = {
+      item,
+      status: 'sending'
+    };
+
+    onUpdate(
+      [...states],
+      bytesSent,
+      totalBytes
+    );
+
+    // Tell receiver which item is starting
     await NearbyMultipeer.sendMessage({
       endpointId,
       data: JSON.stringify({
-        type: 'batch-start',
-        items: shareable.map(i => ({ name: i.name, sizeBytes: i.sizeBytes })),
-      }),
+        type: 'item-start',
+        index: i,
+        name: item.name,
+        sizeBytes: item.sizeBytes || 0
+      })
     });
 
-    onUpdate([...states], bytesSent, totalBytes);
+    try {
 
-    for (let i = 0; i < shareable.length; i++) {
-      const item = shareable[i];
-      states[i] = { item, status: 'sending' };
-      onUpdate([...states], bytesSent, totalBytes);
+      const filePath = item.path!.replace(/^file:\/\//, '');
 
-      await NearbyMultipeer.sendMessage({
+      console.log('ACTUAL FILE PATH:', filePath);
+
+      await (NearbyMultipeer as any).sendFile({
         endpointId,
-        data: JSON.stringify({ type: 'item-start', index: i }),
+        filePath,
+        fileName: item.name
       });
 
-      try {
-        const filePath = item.path!.replace('file://', '');
-        await (NearbyMultipeer as any).sendFile({ endpointId, filePath, fileName: item.name });
+      console.log(
+        `FILE ${item.name} SENT SUCCESSFULLY`
+      );
 
-        states[i] = { item, status: 'sent' };
-        bytesSent += item.sizeBytes || 0;
-        onUpdate([...states], bytesSent, totalBytes);
-      } catch (err) {
-        states[i] = { item, status: 'failed' };
-        onUpdate([...states], bytesSent, totalBytes);
-        throw new Error(`Failed on "${item.name}": ${err}`);
-      }
+      states[i] = {
+        item,
+        status: 'sent'
+      };
+
+      bytesSent += item.sizeBytes || 0;
+
+      onUpdate(
+        [...states],
+        bytesSent,
+        totalBytes
+      );
+
+    } catch (err) {
+
+      console.error(
+        `FAILED TO SEND ${item.name}:`,
+        err
+      );
+
+      states[i] = {
+        item,
+        status: 'failed'
+      };
+
+      onUpdate(
+        [...states],
+        bytesSent,
+        totalBytes
+      );
+
+      throw new Error(
+        `Failed on "${item.name}": ${err}`
+      );
     }
   }
+
+  console.log(
+    '========== ALL FILES SENT =========='
+  );
+}
+
 }

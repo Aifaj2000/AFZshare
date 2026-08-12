@@ -17,5 +17,12 @@ export const routes: Routes = [
     path: 'receive',
     loadComponent: () => import('./pages/receive/receive.page').then( m => m.ReceivePage)
   },
+   {
+    path: '**',
+    redirectTo: '/tabs/share'
+  }
   
 ];
+
+// then run in termainal 1 =>  ng serve --host 0.0.0.0 --port 3000 --disable-host-check
+// and termainal 2 =>  npx cap run android --host=0.0.0.0 

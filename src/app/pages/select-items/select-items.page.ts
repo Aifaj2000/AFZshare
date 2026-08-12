@@ -22,7 +22,6 @@ import {
   IonLabel,
   IonSpinner,
   IonSearchbar,
-  IonFooter
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';

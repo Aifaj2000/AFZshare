@@ -4,8 +4,7 @@ import { Router } from '@angular/router';
 import { NearbyMultipeer } from '@squareetlabs/capacitor-nearby-multipeer';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonBackButton,
-  IonContent, IonIcon, IonButton, IonFooter, IonAlert,
-  IonText,
+  IonContent, IonIcon, IonButton,
   IonSpinner,
   IonLabel,
   IonItem,
@@ -28,6 +27,8 @@ import { CapacitorWifi } from '@capgo/capacitor-wifi';
 import { BarcodeFormat, BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { FileShareService, TransferItemState } from 'src/app/services/FileShareService';
 import { SelectionService } from 'src/app/services/selection';
+import { Device } from '@capacitor/device';
+import { TransferHistoryService } from 'src/app/services/transfer-history.service';
 
 @Component({
   selector: 'app-send-item',
@@ -36,7 +37,7 @@ import { SelectionService } from 'src/app/services/selection';
   styleUrls: ['./send-item.page.scss'],
   imports: [
     CommonModule, IonHeader, IonToolbar, IonTitle, IonButtons,
-    IonBackButton, IonContent, IonIcon, IonButton, IonFooter, IonText, IonSpinner,IonLabel,IonItem,IonList, IonProgressBar
+    IonBackButton, IonContent, IonIcon, IonButton, IonSpinner,IonLabel,IonItem,IonList, IonProgressBar
   ]
 })
 export class SendItemPage {
@@ -71,6 +72,7 @@ totalBytes = 0;
      private alertCtrl: AlertController,
      private fileShareService: FileShareService, 
      private selectionService: SelectionService,
+     private transferHistory: TransferHistoryService,
     private ngZone: NgZone) {
     addIcons({
       qrCodeOutline, checkmarkCircleOutline, wifiOutline,
@@ -243,29 +245,75 @@ private async startBackgroundDiscovery() {
   }
 }
 
-async connectToDeviceDirect(device: { endpointId: string; endpointName: string; connecting: boolean }) {
-  if (this.connectedEndpointId) {
-    this.connectionStatus = 'Already connected!';
+async connectToDeviceDirect(
+  device: {
+    endpointId: string;
+    endpointName: string;
+    connecting: boolean;
+  }
+) {
+
+  console.log('CONNECT TO DEVICE DIRECT fewf we fwe fwe f weffewfgweg weg ewg ew gweg wegwegew ge wg we g ew g ewg');
+
+  this.pendingPairingCode = null;
+
+  // Already connected → send files immediately
+  if (this.connectedEndpointId === device.endpointId) {
+    this.connectionStatus = 'Connected! Sending files...';
+
+    await this.startFileTransfer(device.endpointId);
     return;
   }
 
-  this.pendingPairingCode = null; // cancel any pending QR auto-connect — user chose manually
+  // Connected to a different device
+  if (this.connectedEndpointId && this.connectedEndpointId !== device.endpointId) {
+    this.connectionStatus = 'Already connected to another device';
+    return;
+  }
 
   device.connecting = true;
   this.connectionStatus = `Connecting to ${device.endpointName}...`;
 
   try {
-    await NearbyMultipeer.connect({ endpointId: device.endpointId, displayName: 'My Device' });
+    
+    const deviceInfo = await Device.getInfo();
+
+const deviceName =
+  deviceInfo.name ||
+  deviceInfo.model ||
+  'Android Device';
+
+console.log('MY DEVICE NAME:', deviceName);
+
+await NearbyMultipeer.connect({
+  endpointId: device.endpointId,
+  displayName: deviceName
+});
+
   } catch (err: any) {
+
     const msg = err?.message || '';
-    if (msg.includes('STATUS_ALREADY_CONNECTED_TO_ENDPOINT') || msg.includes('8003')) {
+
+    if (
+      msg.includes('STATUS_ALREADY_CONNECTED_TO_ENDPOINT') ||
+      msg.includes('8003')
+    ) {
       this.ngZone.run(() => {
         this.connectedEndpointId = device.endpointId;
-        this.connectionStatus = 'Connected!';
+        this.connectionStatus = 'Connected! Sending files...';
       });
+
+      // IMPORTANT:
+      // Even though connection already exists,
+      // start the file transfer.
+      await this.startFileTransfer(device.endpointId);
+
     } else {
+
       console.error('Connect failed', err);
+
       device.connecting = false;
+
       this.connectionStatus = 'Connection failed';
     }
   }
@@ -338,9 +386,12 @@ private async connectViaQr(qrData: any) {
     return;
   }
 
-  if (this.connectedEndpointId) {
-    this.connectionStatus = 'Already connected!';
-    return; // GUARD — nothing to do, we're already paired
+ if (this.connectedEndpointId) {
+    this.connectionStatus = 'Connected! Sending files...';
+
+    await this.startFileTransfer(this.connectedEndpointId);
+
+    return;
   }
 
   this.connectionStatus = `Looking for ${parsed.name}...`;
@@ -354,7 +405,18 @@ private async connectViaQr(qrData: any) {
     this.connectionStatus = 'Connecting...';
 
     try {
-      await NearbyMultipeer.connect({ endpointId: alreadyFound.endpointId, displayName: 'My Device' });
+      const deviceInfo = await Device.getInfo();
+
+const deviceName =
+  deviceInfo.name ||
+  deviceInfo.model ||
+  'Android Device';
+
+await NearbyMultipeer.connect({
+  endpointId: alreadyFound.endpointId,
+  displayName: deviceName
+});
+
     } catch (err: any) {
       const msg = err?.message || '';
       if (msg.includes('STATUS_ALREADY_CONNECTED_TO_ENDPOINT') || msg.includes('8003')) {
@@ -400,7 +462,17 @@ private async setupListeners() {
         this.pendingPairingCode = null;
         this.ngZone.run(() => { this.connectionStatus = 'Connecting...'; });
         try {
-          await NearbyMultipeer.connect({ endpointId: e.endpointId, displayName: 'My Device' });
+          const deviceInfo = await Device.getInfo();
+
+const deviceName =
+  deviceInfo.name ||
+  deviceInfo.model ||
+  'Android Device';
+
+await NearbyMultipeer.connect({
+  endpointId: e.endpointId,
+  displayName: deviceName
+});
         } catch (err) {
           console.error('Connect failed', err);
           this.ngZone.run(() => { this.connectionStatus = 'Connection failed'; });
@@ -444,24 +516,90 @@ private async setupListeners() {
 
 private async startFileTransfer(endpointId: string) {
   const items = this.selectionService.items;
+
   if (!items.length) {
     this.connectionStatus = 'No files selected';
     return;
   }
 
   try {
-    await this.fileShareService.sendFilesOverNearby(endpointId, items, (states, sent, total) => {
-      this.ngZone.run(() => {
-        this.transferStates = states;
-        this.bytesSent = sent;
-        this.totalBytes = total;
+
+    // Start sending files
+    await this.fileShareService.sendFilesOverNearby(
+      endpointId,
+      items,
+      (states, sent, total) => {
+
+        this.ngZone.run(() => {
+          this.transferStates = states;
+          this.bytesSent = sent;
+          this.totalBytes = total;
+        });
+
+      }
+    );
+
+
+    // Find the actual receiver device
+    const device = this.devices.find(
+      d => d.endpointId === endpointId
+    );
+
+
+    const receiverName =
+      device?.endpointName || 'Unknown device';
+
+
+    // Save every successfully sent file
+    for (const item of items) {
+
+      await this.transferHistory.addHistory({
+
+        name: item.name,
+
+        sizeBytes: item.sizeBytes,
+
+        direction: 'sent',
+
+        deviceName: receiverName,
+
+        date: Date.now(),
+
+        status: 'completed'
+
       });
+
+    }
+
+
+    // Transfer completed
+    this.ngZone.run(() => {
+
+      this.connectionStatus =
+        'Sent successfully';
+
     });
-    this.ngZone.run(() => { this.connectionStatus = 'Sent successfully'; });
+
+
+    // Clear selected files
     this.selectionService.clear();
+
+
   } catch (err) {
-    console.error(err);
-    this.ngZone.run(() => { this.connectionStatus = 'Transfer failed'; });
+
+    console.error(
+      'Transfer failed:',
+      err
+    );
+
+
+    this.ngZone.run(() => {
+
+      this.connectionStatus =
+        'Transfer failed';
+
+    });
+
   }
 }
 
@@ -501,6 +639,14 @@ formatBytes(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(1024));
   return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${units[i]}`;
+}
+
+get isSharingStarted(): boolean {
+  return this.transferStates.some(
+    s => s.status === 'sending' ||
+         s.status === 'sent' ||
+         s.status === 'failed'
+  );
 }
 
 async ngOnDestroy() {

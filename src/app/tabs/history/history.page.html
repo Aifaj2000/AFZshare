@@ -1,166 +1,295 @@
 <ion-content class="history-page">
 
-  <!-- Top Toggle -->
-  <div class="history-toggle">
+  <div class="history-container">
 
-    <button
-      class="toggle-btn"
-      [class.active]="selectedTab === 'received'"
-      (click)="showReceived()">
+    <!-- Header -->
+    <div class="history-header">
 
-      <ion-icon name="arrow-down-outline"></ion-icon>
-      <span>Received</span>
+      <div>
+        <span class="eyebrow">TRANSFER ACTIVITY</span>
+        <h1>History</h1>
+        <p>Your recent file transfers</p>
+      </div>
 
-    </button>
+      <div class="history-header-icon">
+        <ion-icon name="time-outline"></ion-icon>
+      </div>
 
-    <button
-      class="toggle-btn"
-      [class.active]="selectedTab === 'sent'"
-      (click)="showSent()">
+    </div>
 
-      <ion-icon name="arrow-up-outline"></ion-icon>
-      <span>Sent</span>
 
-    </button>
+    <!-- Received / Sent Toggle -->
+    <div class="history-toggle">
+
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="selectedTab === 'received'"
+        (click)="showReceived()">
+
+        <ion-icon name="arrow-down-outline"></ion-icon>
+
+        <span>Received</span>
+
+      </button>
+
+
+      <button
+        type="button"
+        class="toggle-btn"
+        [class.active]="selectedTab === 'sent'"
+        (click)="showSent()">
+
+        <ion-icon name="arrow-up-outline"></ion-icon>
+
+        <span>Sent</span>
+
+      </button>
+
+    </div>
+
+
+    <!-- ==================================================
+         RECEIVED
+    =================================================== -->
+
+   @if (selectedTab === 'received') {
+
+  <div class="history-content">
+
+    <div class="section-title">
+
+      <div>
+        <h2>Received Files</h2>
+
+        <p>
+          Files received from nearby devices
+        </p>
+      </div>
+
+      <span class="count-badge">
+        {{ receivedItems.length }}
+      </span>
+
+    </div>
+
+
+    @if (receivedItems.length === 0) {
+
+      <div class="empty-state">
+
+        <div class="empty-icon">
+
+          <ion-icon
+            name="arrow-down-outline">
+          </ion-icon>
+
+        </div>
+
+        <h3>No received files</h3>
+
+        <p>
+          Files you receive will appear here.
+        </p>
+
+      </div>
+
+    }
+
+
+    <div class="history-list">
+
+      @for (
+        item of receivedItems;
+        track item.id
+      ) {
+
+        <div class="history-card">
+
+          <div class="file-icon received">
+
+            <ion-icon
+              [name]="getFileIcon(item)">
+            </ion-icon>
+
+          </div>
+
+
+          <div class="file-details">
+
+            <h3>
+              {{ item.name }}
+            </h3>
+
+
+            <div class="file-meta">
+
+              <span>
+                Received
+              </span>
+
+              <span>•</span>
+
+              <span>
+                {{ formatBytes(item.sizeBytes) }}
+              </span>
+
+            </div>
+
+
+            <small>
+
+              {{ item.deviceName }}
+
+              •
+              
+              {{ formatDate(item.date) }}
+
+            </small>
+
+          </div>
+
+
+          <div
+            class="transfer-status received-status">
+
+            <ion-icon
+              name="arrow-down-outline">
+            </ion-icon>
+
+          </div>
+
+        </div>
+
+      }
+
+    </div>
 
   </div>
 
-  <!-- ========================= -->
-  <!-- RECEIVED HISTORY -->
-  <!-- ========================= -->
+}
 
-  @if (selectedTab === 'received') {
 
-    <div class="history-list">
+    <!-- ==================================================
+         SENT
+    =================================================== -->
 
-      <div class="history-card">
+    @if (selectedTab === 'sent') {
 
-        <div class="icon received">
-          <ion-icon name="image-outline"></ion-icon>
-        </div>
+  <div class="history-content">
 
-        <div class="details">
-          <h3>Vacation.jpg</h3>
-          <p>Received • 4.5 MB</p>
-          <small>Today, 10:45 AM</small>
-        </div>
+    <div class="section-title">
 
-        <ion-icon
-          class="status"
-          name="arrow-down-outline">
-        </ion-icon>
+      <div>
+        <h2>Sent Files</h2>
 
+        <p>
+          Files shared with nearby devices
+        </p>
       </div>
 
-      <div class="history-card">
-
-        <div class="icon received">
-          <ion-icon name="document-outline"></ion-icon>
-        </div>
-
-        <div class="details">
-          <h3>Notes.pdf</h3>
-          <p>Received • 2.1 MB</p>
-          <small>Yesterday, 6:20 PM</small>
-        </div>
-
-        <ion-icon
-          class="status"
-          name="arrow-down-outline">
-        </ion-icon>
-
-      </div>
-
-      <div class="history-card">
-
-        <div class="icon received">
-          <ion-icon name="image-outline"></ion-icon>
-        </div>
-
-        <div class="details">
-          <h3>Family.png</h3>
-          <p>Received • 7.8 MB</p>
-          <small>25 Jul, 4:15 PM</small>
-        </div>
-
-        <ion-icon
-          class="status"
-          name="arrow-down-outline">
-        </ion-icon>
-
-      </div>
+      <span class="count-badge">
+        {{ sentItems.length }}
+      </span>
 
     </div>
 
-  }
 
-  <!-- ========================= -->
-  <!-- SENT HISTORY -->
-  <!-- ========================= -->
+    @if (sentItems.length === 0) {
 
-  @if (selectedTab === 'sent') {
+      <div class="empty-state">
+
+        <div class="empty-icon">
+
+          <ion-icon
+            name="arrow-up-outline">
+          </ion-icon>
+
+        </div>
+
+        <h3>No sent files</h3>
+
+        <p>
+          Files you send will appear here.
+        </p>
+
+      </div>
+
+    }
+
 
     <div class="history-list">
 
-      <div class="history-card">
+      @for (
+        item of sentItems;
+        track item.id
+      ) {
 
-        <div class="icon sent">
-          <ion-icon name="document-outline"></ion-icon>
+        <div class="history-card">
+
+          <div class="file-icon sent">
+
+            <ion-icon
+              [name]="getFileIcon(item)">
+            </ion-icon>
+
+          </div>
+
+
+          <div class="file-details">
+
+            <h3>
+              {{ item.name }}
+            </h3>
+
+
+            <div class="file-meta">
+
+              <span>
+                Sent
+              </span>
+
+              <span>•</span>
+
+              <span>
+                {{ formatBytes(item.sizeBytes) }}
+              </span>
+
+            </div>
+
+
+            <small>
+
+              {{ item.deviceName }}
+
+              •
+
+              {{ formatDate(item.date) }}
+
+            </small>
+
+          </div>
+
+
+          <div
+            class="transfer-status sent-status">
+
+            <ion-icon
+              name="arrow-up-outline">
+            </ion-icon>
+
+          </div>
+
         </div>
 
-        <div class="details">
-          <h3>Resume.pdf</h3>
-          <p>Sent • 1.8 MB</p>
-          <small>Today, 8:30 AM</small>
-        </div>
-
-        <ion-icon
-          class="status"
-          name="arrow-up-outline">
-        </ion-icon>
-
-      </div>
-
-      <div class="history-card">
-
-        <div class="icon sent">
-          <ion-icon name="image-outline"></ion-icon>
-        </div>
-
-        <div class="details">
-          <h3>Profile.jpg</h3>
-          <p>Sent • 3.4 MB</p>
-          <small>Yesterday, 2:10 PM</small>
-        </div>
-
-        <ion-icon
-          class="status"
-          name="arrow-up-outline">
-        </ion-icon>
-
-      </div>
-
-      <div class="history-card">
-
-        <div class="icon sent">
-          <ion-icon name="document-outline"></ion-icon>
-        </div>
-
-        <div class="details">
-          <h3>Invoice.pdf</h3>
-          <p>Sent • 850 KB</p>
-          <small>24 Jul, 9:15 AM</small>
-        </div>
-
-        <ion-icon
-          class="status"
-          name="arrow-up-outline">
-        </ion-icon>
-
-      </div>
+      }
 
     </div>
 
-  }
+  </div>
+
+}
+
+  </div>
 
 </ion-content>

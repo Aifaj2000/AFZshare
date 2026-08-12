@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { App } from '@capacitor/app';
 import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
 
 @Component({
@@ -7,5 +8,17 @@ import { IonApp, IonRouterOutlet } from '@ionic/angular/standalone';
   imports: [IonApp, IonRouterOutlet],
 })
 export class AppComponent {
-  constructor() {}
+  constructor() {
+
+  App.addListener('backButton', ({ canGoBack }) => {
+
+    if (canGoBack) {
+      window.history.back();
+    } else {
+      App.exitApp();
+    }
+
+  });
+
+}
 }

@@ -1,60 +1,200 @@
-<ion-content [fullscreen]="true" class="share-page">
+<ion-content
+  [fullscreen]="true"
+  class="share-page">
 
-  <!-- Top Section -->
-  <div class="top-section">
+  <div class="share-container">
 
-    <div class="title">
-      <h2>Offline File Sharing</h2>
-    </div>
 
-    <!-- Help -->
-    <div class="help-section">
-      <div class="help-btn" (click)="showHelp()">
+    <!-- =================================================
+         HEADER
+    ================================================== -->
+
+    <div class="page-header">
+
+      <div class="title-section">
+
+        <div class="title-icon">
+          <ion-icon name="share-social-outline"></ion-icon>
+        </div>
+
+        <div>
+          <h1>Offline File Sharing</h1>
+          <p>Fast. Private. No internet required.</p>
+        </div>
+
+      </div>
+
+
+      <!-- Help -->
+
+      <button
+        class="help-button"
+        type="button"
+        (click)="showHelp()">
+
         <ion-icon name="help-outline"></ion-icon>
+
+      </button>
+
+    </div>
+
+
+
+    <!-- =================================================
+         MAIN CONTENT
+    ================================================== -->
+
+    <div class="main-content">
+
+
+      <!-- =================================================
+           SEND CARD
+      ================================================== -->
+
+      <div
+        class="action-card send-card"
+        (click)="sendFile()">
+
+
+        <div class="action-content">
+
+          <div class="action-icon send-icon">
+
+            <ion-icon
+              name="arrow-up-outline">
+            </ion-icon>
+
+          </div>
+
+
+          <div class="action-text">
+
+            <span class="action-label">
+              Send
+            </span>
+
+            <span class="action-description">
+              Send files to a nearby device
+            </span>
+
+          </div>
+
+
+          <div class="action-arrow">
+
+            <ion-icon
+              name="chevron-forward-outline">
+            </ion-icon>
+
+          </div>
+
+        </div>
+
+
       </div>
 
-      <p>How it works</p>
-    </div>
 
-    <!-- Send -->
-    <div class="send-wrapper" (click)="sendFile()">
 
-      <div class="send-glow"></div>
+      <!-- =================================================
+           RECEIVE CARD
+      ================================================== -->
 
-      <div class="send-btn">
-        <ion-icon name="arrow-up-outline"></ion-icon>
+      <div
+        class="action-card receive-card"
+        (click)="receiveFile()">
+
+
+        <div class="action-content">
+
+
+          <div class="action-icon receive-icon">
+
+            <ion-icon
+              name="arrow-down-outline">
+            </ion-icon>
+
+          </div>
+
+
+          <div class="action-text">
+
+            <span class="action-label">
+              Receive
+            </span>
+
+            <span class="action-description">
+              Receive files from a nearby device
+            </span>
+
+          </div>
+
+
+          <div class="action-arrow">
+
+            <ion-icon
+              name="chevron-forward-outline">
+            </ion-icon>
+
+          </div>
+
+
+        </div>
+
       </div>
 
-      <span>Send</span>
 
-    </div>
 
-  </div>
+      <!-- =================================================
+           INFO
+      ================================================== -->
 
-  <!-- Bottom Section -->
-  <div class="bottom-section">
+      <div class="info-card">
 
-    <!-- Receive -->
-    <div class="receive-wrapper" (click)="receiveFile()">
+        <ion-icon
+          name="wifi-outline">
+        </ion-icon>
 
-      <span>Receive</span>
+        <div>
 
-      <div class="receive-glow"></div>
+          <strong>
+            Nearby sharing
+          </strong>
 
-      <div class="receive-btn">
-        <ion-icon name="arrow-down-outline"></ion-icon>
+          <p>
+            Connect directly with nearby devices
+            without using mobile data.
+          </p>
+
+        </div>
+
       </div>
 
+
     </div>
 
-    <div class="history-container">
-      <ion-button
-        shape="round"
-        class="invite-btn"
-        (click)="inviteFriends()">
-        Invite
-      </ion-button>
-    </div>
+
+
+    <!-- =================================================
+         INVITE
+    ================================================== -->
+
+    <div class="bottom-action">
+
+  <ion-button
+    shape="round"
+    class="invite-btn"
+    (click)="inviteFriends()">
+
+    <ion-icon
+      name="person-add-outline"
+      slot="start">
+    </ion-icon>
+
+    Invite Friends
+
+  </ion-button>
+
+</div>
 
   </div>
 

@@ -12,9 +12,24 @@ import {
 
 import { addIcons } from 'ionicons';
 import {
-  helpOutline,
+  chevronForwardOutline,
+  phonePortraitOutline,
+  qrCodeOutline,
+  wifiOutline,
+  bluetoothOutline,
+  locationOutline,
+  checkmarkCircle,
   arrowUpOutline,
-  arrowDownOutline
+  arrowDownOutline,
+  helpOutline,
+  searchOutline,
+  shareSocialOutline,
+  timeOutline,
+  documentOutline,
+  personOutline,
+  closeCircle,
+  ellipseOutline,
+  personAddOutline
 } from 'ionicons/icons';
 import { Router } from '@angular/router';
 
@@ -35,10 +50,25 @@ export class SharePage implements OnInit {
 
   constructor( private alertController: AlertController, private router: Router) {
     addIcons({
-      helpOutline,
-      arrowUpOutline,
-      arrowDownOutline
-    });
+  'chevron-forward-outline': chevronForwardOutline,
+  'phone-portrait-outline': phonePortraitOutline,
+  'qr-code-outline': qrCodeOutline,
+  'wifi-outline': wifiOutline,
+  'bluetooth-outline': bluetoothOutline,
+  'location-outline': locationOutline,
+  'checkmark-circle': checkmarkCircle,
+  'arrow-up-outline': arrowUpOutline,
+  'arrow-down-outline': arrowDownOutline,
+  'help-outline': helpOutline,
+  'search-outline': searchOutline,
+  'share-social-outline': shareSocialOutline,
+  'time-outline': timeOutline,
+  'document-outline': documentOutline,
+  'person-outline': personOutline,
+  'person-add-outline': personAddOutline,
+  'close-circle': closeCircle,
+  'ellipse-outline': ellipseOutline
+});
   }
 
   ngOnInit(): void {
@@ -55,6 +85,7 @@ sendFile() {
   }
 
   async inviteFriends() {
+    console.log('Invite Friends clicked');
   try {
     await Share.share({
       title: 'AFZShare',
@@ -70,6 +101,7 @@ sendFile() {
 async showHelp() {
   const alert = await this.alertController.create({
     header: '📤 AFZShare Guide',
+    cssClass: 'help-alert',
     message:
       '• Tap Send to choose files and share them.\n\n' +
       '• Tap Receive to wait for incoming files.\n\n' +
@@ -81,6 +113,5 @@ async showHelp() {
 
   await alert.present();
 }
-
   
 }
