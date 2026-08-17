@@ -253,7 +253,6 @@ async connectToDeviceDirect(
   }
 ) {
 
-  console.log('CONNECT TO DEVICE DIRECT fewf we fwe fwe f weffewfgweg weg ewg ew gweg wegwegew ge wg we g ew g ewg');
 
   this.pendingPairingCode = null;
 

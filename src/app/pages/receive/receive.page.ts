@@ -67,6 +67,8 @@ export class ReceivePage implements OnDestroy {
   overallBytesReceived = 0;
   overallTotalBytes = 0;
 
+    private lastProgressUpdate = 0;
+
   constructor(private router: Router,
     private alertCtrl: AlertController,
     private ngZone: NgZone,private transferHistory: TransferHistoryService) {
@@ -374,84 +376,64 @@ console.log(
     );
 
 
-    this.listeners.push(
-      await NearbyMultipeer.addListener(
-        'payloadTransferUpdate',
-        (e: any) => {
 
-          console.log(
-            'PAYLOAD TRANSFER UPDATE:',
-            JSON.stringify(e)
+this.listeners.push(
+  await NearbyMultipeer.addListener(
+    'payloadTransferUpdate',
+    (e: any) => {
+
+      // Ignore tiny metadata/message payloads
+      if (!e.totalBytes || e.totalBytes < 1024) {
+        return;
+      }
+
+      const index = this.incomingItems.findIndex(
+        (item: IncomingItem) =>
+          item.status === 'receiving' &&
+          item.sizeBytes === e.totalBytes
+      );
+
+      if (index === -1) {
+        return;
+      }
+
+      const isComplete = e.bytesTransferred >= e.totalBytes;
+      const now = Date.now();
+
+      // Throttle UI updates — skip if too soon since last render,
+      // unless this is the final update for this file
+      if (!isComplete && now - this.lastProgressUpdate < 150) {
+        return;
+      }
+      this.lastProgressUpdate = now;
+
+      this.ngZone.run(() => {
+
+        const item = this.incomingItems[index];
+
+        item.bytesReceived = e.bytesTransferred;
+
+        this.overallBytesReceived =
+          this.incomingItems.reduce(
+            (total, current) =>
+              total + (current.bytesReceived || 0),
+            0
           );
 
-          this.ngZone.run(() => {
+        const percent =
+          item.sizeBytes > 0
+            ? (item.bytesReceived / item.sizeBytes) * 100
+            : 0;
 
-            /*
-             * Ignore the small BYTES payloads such as:
-             * batch-start
-             * item-start
-             *
-             * Find the actual receiving file by size.
-             */
-            const index =
-              this.incomingItems.findIndex(
-                (item: IncomingItem) =>
-                  item.status === 'receiving' &&
-                  item.sizeBytes === e.totalBytes
-              );
-
-            if (index === -1) {
-
-              console.log(
-                'No matching file for payload:',
-                e.payloadId,
-                'totalBytes:',
-                e.totalBytes
-              );
-
-              return;
-            }
-
-            const item =
-              this.incomingItems[index];
-
-            item.bytesReceived =
-              e.bytesTransferred;
-
-            this.overallBytesReceived =
-              this.incomingItems.reduce(
-                (total, current) =>
-                  total +
-                  (current.bytesReceived || 0),
-                0
-              );
-
-            /*
-             * File transfer completely received.
-             */
-            if (
-              e.bytesTransferred === e.totalBytes &&
-              e.totalBytes === item.sizeBytes
-            ) {
-
-              item.bytesReceived =
-                item.sizeBytes;
-
-              item.status = 'done';
-            }
-
-            console.log(
-              'FILE PROGRESS:',
-              item.name,
-              item.bytesReceived,
-              '/',
-              item.sizeBytes,
-              item.status
-            );
-          });
-        }
-      )
-    );
+        console.log(
+          `FILE PROGRESS: ${item.name} ` +
+          `${item.bytesReceived}/${item.sizeBytes} ` +
+          `${percent.toFixed(1)}%`
+        );
+      });
+    }
+  )
+);
 
 
   this.listeners.push(

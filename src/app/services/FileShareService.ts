@@ -113,7 +113,7 @@ export class FileShareService {
 
   // ---------- NEARBYMULTIPEER — ACTIVE FLOW ----------
 
- async sendFilesOverNearby(
+async sendFilesOverNearby(
   endpointId: string,
   items: ShareItem[],
   onUpdate: (
@@ -126,9 +126,38 @@ export class FileShareService {
   console.log('Endpoint:', endpointId);
   console.log('Items received:', items);
 
+  // -----------------------------
+  // RESOLVE APP PATHS (installed apps have no .path by default)
+  // -----------------------------
+
+  const resolvedItems: ShareItem[] = [];
+
+  for (const item of items) {
+    if (item.type === 'app' && !item.path && item.packageName) {
+      try {
+        const result: any = await (NearbyMultipeer as any).getInstalledAppPath({
+          packageName: item.packageName,
+        });
+        console.log(`Resolved APK path for ${item.packageName}:`, result.path);
+
+        // Ensure filename carries .apk extension so MIME detection works on receiver side
+        const apkFileName = item.name.toLowerCase().endsWith('.apk')
+          ? item.name
+          : `${item.name}.apk`;
+
+        resolvedItems.push({ ...item, path: result.path, name: apkFileName });
+      } catch (err) {
+        console.warn(`Could not resolve APK path for ${item.packageName}`, err);
+        resolvedItems.push(item); // stays without a path — will be filtered below
+      }
+    } else {
+      resolvedItems.push(item);
+    }
+  }
+
   // IMPORTANT:
   // Don't silently remove selected files without telling us why.
-  const shareable = items.filter(item => !!item.path);
+  const shareable = resolvedItems.filter(item => !!item.path);
 
   console.log('Shareable items:', shareable);
 
@@ -136,7 +165,7 @@ export class FileShareService {
     console.error('NO SHAREABLE FILES');
     console.error(
       'Items received but none contain item.path:',
-      items
+      resolvedItems
     );
 
     throw new Error(
@@ -217,7 +246,11 @@ export class FileShareService {
 
     try {
 
-      const filePath = item.path!.replace(/^file:\/\//, '');
+      // Content URIs (content://) are resolved natively — don't strip those.
+      // Only strip the file:// scheme if present.
+      const filePath = item.path!.startsWith('file://')
+        ? item.path!.replace(/^file:\/\//, '')
+        : item.path!;
 
       console.log('ACTUAL FILE PATH:', filePath);
 

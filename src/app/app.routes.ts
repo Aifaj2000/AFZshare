@@ -25,4 +25,5 @@ export const routes: Routes = [
 ];
 
 // then run in termainal 1 =>  ng serve --host 0.0.0.0 --port 3000 --disable-host-check
-// and termainal 2 =>  npx cap run android --host=0.0.0.0 
+// and termainal 2 =>  npx cap run android --host=0.0.0.0
+// npx patch-package @squareetlabs/capacitor-nearby-multipeer
